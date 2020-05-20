@@ -1,6 +1,5 @@
 # PILP-Solver
-Implementation of an algorithm to computes the breakpoints (and facets) of a parametric ILP.
-
+Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric ILP in incremental polynomial time.
 
 The implementation is based on the paper:
 
