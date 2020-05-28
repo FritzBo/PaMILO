@@ -48,7 +48,7 @@ public:
             std::function<bool(ogdf::node,ogdf::edge)> mode=DijkstraModes::Forward) {
         // Initialization: set distances
         for(auto v : graph.nodes) {
-            distance[v] = numeric_limits<T>::max();
+            distance[v] = std::numeric_limits<T>::max();
         }
 
         // Initialization: populate priority queue

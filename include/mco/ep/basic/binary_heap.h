@@ -50,7 +50,7 @@
 
 #include <functional>
 
-#include <ogdf/basic/HeapBase.h>
+#include "HeapBase.h"
 
 namespace mco {
 

@@ -343,7 +343,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 		NodeArray<bool> neighbor_checked(vertex_graph_, false);
 
 		AdjElement *adj;
-		forall_adj(adj, active_node) {
+		for(auto adj : active_node.adjEntries) {
 
 			node neighbor = adj->theEdge()->target();
 
@@ -485,13 +485,15 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 //			for(auto n : new_face_nodes)
 //				cout << "face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
-		}	// forall_adj
+		}	// for all adj
 
 //		cout << "Deleting node: " << active_node << endl;
 		delete node_inequality_indices_[active_node];
 
 		edge e;
-		forall_adj_edges(e, active_node)
+		ogdf::List<edge> adjEdges;
+		active_node->adjEdges(adjEdges);
+		for(edge e : adjEdges)
 			delete edge_inequality_indices_[e];
 
 		vertex_graph_.delNode(active_node);

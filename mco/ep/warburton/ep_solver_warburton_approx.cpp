@@ -62,7 +62,7 @@ void EpSolverWarburtonApprox::Solve() {
 	// Computing the bounds
 	for(unsigned int k = 0; k < dimension - 1; ++k) {
 
-		forall_edges(e, graph) {
+		for(edge e : graph.edges) {
 			weight = (*weights(e))[k];
 			min_e[k] = min(min_e[k], weight);
 			max_e[k] = max(max_e[k], weight);
@@ -75,12 +75,12 @@ void EpSolverWarburtonApprox::Solve() {
 
 		for(int i = min_i; i < max_i; ++i) {
 			d = static_cast<double>(pow(2, max_i - i));
-			forall_edges(e, graph)
+			for(edge e : graph.edges)
 				weight_functions[k][e] = static_cast<int>(floor((*weights(e))[k] * (number_nodes - 1) / (epsilon_[k] * d) ));
 
 			// TODO: Error Message / Exception
 			if(!shortest_path_module.call(graph, source, weight_functions[k], distances, predecessor))
-				cout << "Kein Weg gefunden!" << endl;
+				std::cout << "Kein Weg gefunden!" << std::endl;
 
 			if(distances[target] > (number_nodes - 1) * theta_ / epsilon_[k] || max_i - i == 1) {
 				lb[k] = max_i - i + 1;
@@ -92,9 +92,9 @@ void EpSolverWarburtonApprox::Solve() {
 
 	label_limits[dimension - 1] = numeric_limits<int>::infinity();
 
-	cout << "bounds:" << endl;
+	std::cout << "bounds:" << std::endl;
 	for(unsigned int k = 0; k < dimension - 1; ++k)
-		cout << "k: " << k << ", lb: " << lb[k] << ", ub: " << ub[k] << ", limit: " << label_limits[k] << endl;
+		std::cout << "k: " << k << ", lb: " << lb[k] << ", ub: " << ub[k] << ", limit: " << label_limits[k] << std::endl;
 
 }
 

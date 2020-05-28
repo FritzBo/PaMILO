@@ -76,7 +76,7 @@ Solve(Graph& graph,
 //		cout << endl << n << ", " << *label->point << ": ";
 
 		AdjElement *adj;
-		forall_adj(adj, n) {
+		for(auto adj : n.adjEntries) {
 			edge e = adj->theEdge();
 
 			if(e->isSelfLoop())

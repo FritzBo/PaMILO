@@ -319,7 +319,7 @@ void NodeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 		NodeArray<bool> neighor_checked(vertex_graph_, false);
 
 		AdjElement *adj;
-		forall_adj(adj, active_node) {
+		for(auto adj : active_node.adjEntries) {
 
 			node neighbor = adj->theEdge()->target();
 
@@ -433,7 +433,7 @@ void NodeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 //			for(auto n : new_face_nodes)
 //				cout << "face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
 
-		}	// forall_adj
+		}	// for all adj
 
 //		cout << "Deleting node: " << active_node << endl;
 		delete node_inequality_indices_[active_node];

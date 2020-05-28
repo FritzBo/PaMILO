@@ -79,7 +79,7 @@ void EpSolverTsaggourisApprox::Solve() {
 	}
 
 	edge e;
-	forall_edges(e, graph) {
+	for(edge e : graph.edges) {
 		if(e->isSelfLoop())
 			continue;
 
@@ -114,7 +114,9 @@ void EpSolverTsaggourisApprox::Solve() {
 	for(int i = 1; i < graph.numberOfNodes(); ++i)
 		for(node n : graph.nodes) {
 			auto new_Py = new NodeArray<vector<const Label *>>(*old_Py);
-			forall_adj_edges(e, n) {
+			ogdf::List<edge> adjEdges;
+			n->adjEdges(adjEdges);
+			for(edge e : adjEdges) {
 				if(e->target() != n)
 					continue;
 
