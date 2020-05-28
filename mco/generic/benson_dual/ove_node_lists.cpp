@@ -70,7 +70,7 @@ NodeListVE(const Point& initial_value,
         
         list_of_inequalities_.push_back(p);
         
-        forall_nodes(v, vertex_graph_) {
+        for(node v : vertex_graph_.nodes) {
             if(v != n) {
                 vertex_graph_.newEdge(v, n);
                 vertex_graph_.newEdge(n, v);
@@ -105,7 +105,7 @@ NodeListVE(const Point& initial_value,
     node_points_[n] = p;
     unprocessed_projective_points_.push(p);
     
-    forall_nodes(v, vertex_graph_) {
+    for(node v : vertex_graph_.nodes) {
         if(v != n) {
             vertex_graph_.newEdge(v, n);
             vertex_graph_.newEdge(n, v);
@@ -136,7 +136,7 @@ NodeListVE(const Point& initial_value,
     point_nodes_.insert(make_pair(p, n));
     node_points_[n] = p;
     
-    forall_nodes(v, vertex_graph_) {
+    for(node v : vertex_graph_.nodes) {
         if(v != n) {
             vertex_graph_.newEdge(v, n);
             vertex_graph_.newEdge(n, v);
@@ -148,7 +148,7 @@ NodeListVE(const Point& initial_value,
     //		cout << *ineq << endl;
     //
     //	cout << "vertices:" << endl;
-    //	forall_nodes(v, vertex_graph_) {
+    //	for(node v : vertex_graph_.nodes) {
     //		cout << *node_points_[v] << endl;
     //		cout << "Node inequalities:" << endl;
     //			for(auto index: *node_inequality_indices_[v])
@@ -162,7 +162,7 @@ NodeListVE(const Point& initial_value,
 NodeListVE::~NodeListVE() {
 	node n;
 
-	forall_nodes(n, vertex_graph_) {
+	for(node n : vertex_graph_.nodes) {
 		delete node_points_[n];
 	}
 
@@ -531,7 +531,7 @@ bool NodeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 //			cout << "inequality: " << *inequality << endl;
 
 			node n;
-			forall_nodes(n, vertex_graph_) {
+			for(node n : vertex_graph_.nodes) {
 //					cout << "checking node " << n << " with point " << *node_points_[n] << ": " << (*inequality) * (*node_points_[n]) << endl;
 				if(abs((*inequality) * (*node_points_[n])) < epsilon_)
 					new_vertices.insert(node_points_[n]);

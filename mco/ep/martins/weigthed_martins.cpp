@@ -157,7 +157,7 @@ Solve(Graph& graph,
 //	}
 
 	node n;
-	forall_nodes(n, graph) {
+	for(node n : graph.nodes) {
 		for(auto &label : labels[n])
 			delete label;
 	}

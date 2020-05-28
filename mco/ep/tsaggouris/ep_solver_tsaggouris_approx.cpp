@@ -105,14 +105,14 @@ void EpSolverTsaggourisApprox::Solve() {
 	NodeArray<vector<const Label *>> * old_Py = new NodeArray<vector<const Label *>>(graph);
 
 	node n;
-	forall_nodes(n, graph) {
+	for(node n : graph.nodes) {
 		(*old_Py)[n].resize(size, nullptr);
 	}
 
 	(*old_Py)[instance().source()][0] = new Label(Point::Null(dimension), nullptr, nullptr);
 
 	for(int i = 1; i < graph.numberOfNodes(); ++i)
-		forall_nodes(n, graph) {
+		for(node n : graph.nodes) {
 			auto new_Py = new NodeArray<vector<const Label *>>(*old_Py);
 			forall_adj_edges(e, n) {
 				if(e->target() != n)
