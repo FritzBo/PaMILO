@@ -79,7 +79,7 @@ void EpSolverMartinsSmart::Solve() {
 		node n = label->n;
 
 		AdjElement *adj;
-		forall_adj(adj, n) {
+		for(auto adj : n->adjEntries) {
 			edge e = adj->theEdge();
 
 			if(e->isSelfLoop())
@@ -143,7 +143,7 @@ void EpSolverMartinsSmart::Solve() {
             list<edge> path;
             shared_ptr<const LabelSmart> curr = label;
             while(curr->n != instance().source()) {
-                for(auto adj: curr->n->adjEdges) {
+                for(auto adj: curr->n->adjEntries) {
                     edge e = adj->theEdge();
                     if(e->source() == curr->pred->n && e->target() == curr->n) {
                         path.push_back(e);

@@ -63,7 +63,7 @@ public:
         // Dijkstra: empty queue, update distances accordingly
         while(!queue.empty()) {
             auto v = queue.extractMin();
-            for(auto adj : v->adjEdges) {
+            for(auto adj : v->adjEntries) {
                 auto e = adj->theEdge();
                 if(!mode(v, e)) continue;
                 auto w = e->opposite(v);

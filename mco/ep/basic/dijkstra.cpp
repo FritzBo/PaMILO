@@ -55,7 +55,7 @@ void LexDijkstra::singleSourceShortestPaths(
     Point tmp(dim);
     while (!queue.empty()) {
         node v = queue.extractMin();
-        for(auto adj : v->adjEdges) {
+        for(auto adj : v->adjEntries) {
             edge e = adj->theEdge();
             if(!mode(v, e)) continue;
             node w = e->opposite(v);

@@ -200,7 +200,7 @@ void EpSolverBS::Solve(const Graph& graph,
 
 		list<const Point *> &currentNodeLabels = labels[n];
 
-        for(auto adj : n->adjEdges) {
+        for(auto adj : n->adjEntries) {
             
             edge e = adj->theEdge();
             

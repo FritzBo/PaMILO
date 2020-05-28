@@ -79,7 +79,7 @@ public:
                ogdf::node target,
                bool directed = true) {
         
-        Point absolute_bound(numeric_limits<double>::infinity(), dimension);
+        Point absolute_bound(std::numeric_limits<double>::infinity(), dimension);
         
         Solve(graph,
               weights,

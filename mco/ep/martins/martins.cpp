@@ -131,10 +131,10 @@ Solve(Graph& graph,
             continue;
         }
 
-//		cout << endl << n << ", " << *label->point << ": ";
+//		std::cout << std::endl << n << ", " << *label->point << ": ";
 
 		AdjElement *adj;
-		forall_adj(adj, n) {
+		for(auto adj : n->adjEntries) {
 			edge e = adj->theEdge();
 
 			if(e->isSelfLoop())
@@ -154,7 +154,7 @@ Solve(Graph& graph,
 			if(v == source)
 				continue;
 
-//			cout << v << ", ";
+//			std::cout << v << ", ";
 
 			const Point *edge_cost = weights(e);
 			const Point *new_cost = new Point(*edge_cost + *label_cost);			// Owner
@@ -262,7 +262,7 @@ Solve(Graph& graph,
             list<edge> path;
             const Label* curr = label;
             while(curr->n != source) {
-                for(auto adj: curr->n->adjEdges) {
+                for(auto adj: curr->n->adjEntries) {
                     edge e = adj->theEdge();
                     if(e->source() == curr->pred->n && e->target() == curr->n) {
                         path.push_back(e);
@@ -283,23 +283,23 @@ Solve(Graph& graph,
 
 //	for(Label *label : labels[target]) {
 //		const Label *current_label = label;
-//      cout << "(";
+//      std::cout << "(";
 //		while(current_label->n != source) {
-//			cout << current_label->n << ", ";
+//			std::cout << current_label->n << ", ";
 //			current_label = current_label->pred;
 //		}
-//		cout << current_label->n;
-//      cout << ")";
-//      cout << endl;
-//      cout << *label->point << endl;
+//		std::cout << current_label->n;
+//      std::cout << ")";
+//      std::cout << std::endl;
+//      std::cout << *label->point << std::endl;
 //	}
     
-    cout << "Length bound deletions: " << bound_deletion << endl;
-    cout << "Heuristic bound deletions: " << heuristic_deletion << endl;
-    cout << "First phase bound deletions: " << first_phase_deletion << endl;
+    std::cout << "Length bound deletions: " << bound_deletion << std::endl;
+    std::cout << "Heuristic bound deletions: " << heuristic_deletion << std::endl;
+    std::cout << "First phase bound deletions: " << first_phase_deletion << std::endl;
     
 	node n;
-	forall_nodes(n, graph) {
+	for(node n : graph.nodes) {
 		for(auto &label : labels[n])
 			delete label;
 	}
@@ -352,7 +352,7 @@ construct_labels(NodeArray<list<Label*>> & labels,
             // nodes on the path which are in the queue
             while(!labeling_finished || in_queue[n]) {
                 
-//                cout << n << endl;
+//                std::cout << n << std::endl;
                 
                 // If we are still looking for the root of the path
                 if(!labeling_finished) {
