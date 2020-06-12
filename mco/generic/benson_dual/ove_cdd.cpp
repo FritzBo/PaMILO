@@ -57,7 +57,7 @@ OnlineVertexEnumeratorCDD::OnlineVertexEnumeratorCDD(Point &initial_value, unsig
 //	dd_WriteMatrix(stdout, h_representation_);
 //
 //	for(Point &p : unprocessed_vertices_)
-//		cout << p << endl;
+//		std::cout << p << std::endl;
 }
 
 OnlineVertexEnumeratorCDD::~OnlineVertexEnumeratorCDD() {

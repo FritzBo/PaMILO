@@ -47,15 +47,15 @@ ConvexHull(const list<const Point *> &source1,
            list<const Point *> &dominated_subset,
            double epsilon) {
     
-//    cout << "new" << endl;
+//    std::cout << "new" << std::endl;
 //    for(auto point : source1) {
-//        cout << *point << endl;
+//        std::cout << *point << std::endl;
 //    }
-//    cout << "old" << endl;
+//    std::cout << "old" << std::endl;
 //    for(auto point : source2) {
-//        cout << *point << endl;
+//        std::cout << *point << std::endl;
 //    }
-//    cout << endl;
+//    std::cout << std::endl;
     
     unsigned dim = source1.back()->dimension();
     unsigned no_points = source1.size() + source2.size();
@@ -182,15 +182,15 @@ ConvexHull(const list<const Point *> &source1,
     dd_FreeMatrix(points);
     
     // FIXME
-//    cout << "dominated" << endl;
+//    std::cout << "dominated" << std::endl;
 //    for(auto p: dominated_subset) {
-//        cout << *p << endl;
+//        std::cout << *p << std::endl;
 //    }
-//    cout << "nondominated" << endl;
+//    std::cout << "nondominated" << std::endl;
 //    for(auto p: nondominated_subset) {
-//        cout << *p << endl;
+//        std::cout << *p << std::endl;
 //    }
-//    cout << endl;
+//    std::cout << std::endl;
 
     return true;
 }
@@ -216,7 +216,7 @@ void EpWeightedBS::Solve(const Graph& graph,
 	while(!queue.empty()) {
 		node n = queue.front();
 
-//		cout << n << ": ";
+//		std::cout << n << ": ";
 
 		list<const Point *> &currentNodeLabels = labels[n];
 
@@ -246,7 +246,7 @@ void EpWeightedBS::Solve(const Graph& graph,
                 continue;
             }
 
-//			cout << v << ", ";
+//			std::cout << v << ", ";
 
 			list<const Point *> new_labels;
 
@@ -293,7 +293,7 @@ void EpWeightedBS::Solve(const Graph& graph,
 		queue.pop();
 		nodes_in_queue[n] = false;
         
-//        cout << endl;
+//        std::cout << std::endl;
 
 		assert(queue.size() <= static_cast<unsigned>(graph.numberOfNodes()));
 	}

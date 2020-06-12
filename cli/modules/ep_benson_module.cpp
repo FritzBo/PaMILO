@@ -1,5 +1,5 @@
 //
-//  benson_module.cpp
+//  ep_benson_module.cpp
 //  mco
 //
 //  Created by Fritz Bökler on 14.07.14.

@@ -75,7 +75,7 @@ void EpSolverTsaggourisApprox::Solve() {
 
 	for(unsigned int i = 0; i < dimension - 1; ++i) {
 		c_max[i] = 0;
-		c_min_[i] = numeric_limits<double>::infinity();
+		c_min_[i] = std::numeric_limits<double>::infinity();
 	}
 
 	edge e;

@@ -187,7 +187,7 @@ void EpMartinsModule::parse_ideal_bounds(const MultiArg<string>& argument,
         tokenize(*bounds_it, tokens, ":");
         
         if(tokens.size() != 2) {
-            cout << "Error" << endl;
+            std::cout << "Error" << std::endl;
             return;
         }
         
@@ -195,12 +195,12 @@ void EpMartinsModule::parse_ideal_bounds(const MultiArg<string>& argument,
         double factor = stod(tokens[1]);
         
         if(objective_function > dimension) {
-            cout << "Error" << endl;
+            std::cout << "Error" << std::endl;
             return;
         }
         
         if(objective_function == 0) {
-            cout << "Error" << endl;
+            std::cout << "Error" << std::endl;
             return;
         }
         
@@ -223,7 +223,7 @@ void EpMartinsModule::parse_fractional_bounds(const MultiArg<string>& argument,
         tokenize(*bounds_it, tokens, ":");
         
         if(tokens.size() != 3) {
-            cout << "Error" << endl;
+            std::cout << "Error" << std::endl;
             return;
         }
         
@@ -234,19 +234,19 @@ void EpMartinsModule::parse_fractional_bounds(const MultiArg<string>& argument,
         if(bound_objective > dimension ||
            ref_objective > dimension) {
             
-            cout << "Error" << endl;
+            std::cout << "Error" << std::endl;
             return;
         }
         
         if(bound_objective == 0 ||
            ref_objective == 0) {
             
-            cout << "Error" << endl;
+            std::cout << "Error" << std::endl;
             return;
         }
         
-        if(bounds[ref_objective - 1] == numeric_limits<double>::infinity()) {
-            cout << "Error" << endl;
+        if(bounds[ref_objective - 1] == std::numeric_limits<double>::infinity()) {
+            std::cout << "Error" << std::endl;
             return;
         }
         
@@ -306,7 +306,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
     
     NodeArray<edge> predecessor(graph);
     
-    cout << "calculating heuristic..." << endl;
+    std::cout << "calculating heuristic..." << std::endl;
     
     for(unsigned i = 0; i < dimension; ++i) {
         auto length = [&costs, i] (edge e) {
@@ -330,7 +330,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  vector<NodeArray<double>> distances(dimension, graph);
  NodeArray<edge> predecessor(graph);
  
- cout << "calculating heuristic..." << endl;
+ std::cout << "calculating heuristic..." << std::endl;
  
  for(unsigned i = 0; i < dimension; ++i) {
  auto length = [&costs, i] (edge e) {
@@ -351,13 +351,13 @@ void EpMartinsModule::calculate_ideal_heuristic(
  
  Point absolute_bound(numeric_limits<double>::infinity(), dimension);
  for(unsigned i = 0; i < dimension; ++i) {
- absolute_bound[i] = numeric_limits<double>::infinity();
+ absolute_bound[i] = std::numeric_limits<double>::infinity();
  }
  //        bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
  
  EpSolverMartins solver;
  
- cout << "Running Martins algorithm..." << endl;
+ std::cout << "Running Martins algorithm..." << std::endl;
  
  solver.Solve(graph,
  cost_function,
@@ -369,7 +369,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  list<Point>(),
  false);
  
- cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;
+ std::cout << "Size of the Pareto-frontier: " << solver.solutions().size() << std::endl;
  
  } else if(algorithm.compare("fpre-martins") == 0) {
  Dijkstra<double> sssp_solver;
@@ -377,7 +377,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  vector<NodeArray<double>> distances(dimension, graph);
  NodeArray<edge> predecessor(graph);
  
- cout << "calculating heuristic..." << endl;
+ std::cout << "calculating heuristic..." << std::endl;
  
  for(unsigned i = 0; i < dimension; ++i) {
  auto length = [&costs, i] (edge e) {
@@ -398,11 +398,11 @@ void EpMartinsModule::calculate_ideal_heuristic(
  
  Point absolute_bound(numeric_limits<double>::infinity(), dimension);
  for(unsigned i = 0; i < dimension - 1; ++i) {
- absolute_bound[i] = numeric_limits<double>::infinity();
+ absolute_bound[i] = std::numeric_limits<double>::infinity();
  }
  absolute_bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
  
- cout << "Running first phase..." << endl;
+ std::cout << "Running first phase..." << std::endl;
  
  list<Point> first_phase_bounds;
  {
@@ -420,7 +420,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  
  EpSolverMartins solver;
  
- cout << "Running Martins algorithm..." << endl;
+ std::cout << "Running Martins algorithm..." << std::endl;
  
  solver.Solve(graph,
  cost_function,
@@ -432,7 +432,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  first_phase_bounds,
  false);
  
- cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;
+ std::cout << "Size of the Pareto-frontier: " << solver.solutions().size() << std::endl;
  
  } else if(algorithm.compare("flabel-martins") == 0) {
  Dijkstra<double> sssp_solver;
@@ -440,7 +440,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  vector<NodeArray<double>> distances(dimension, graph);
  NodeArray<edge> predecessor(graph);
  
- cout << "Calculating heuristic... ";
+ std::cout << "Calculating heuristic... ";
  steady_clock::time_point start = steady_clock::now();
  
  for(unsigned i = 0; i < dimension; ++i) {
@@ -464,13 +464,13 @@ void EpMartinsModule::calculate_ideal_heuristic(
  duration<double> heuristic_computation_span
  = duration_cast<duration<double>>(heuristic_end - start);
  
- cout << "Done. (" << heuristic_computation_span.count() << "s)" << endl;
+ std::cout << "Done. (" << heuristic_computation_span.count() << "s)" << std::endl;
  
  Point absolute_bound(numeric_limits<double>::infinity(), dimension);
  Point relative_bound(numeric_limits<double>::infinity(), dimension);
  
  for(unsigned i = 0; i < dimension; ++i) {
- absolute_bound[i] = numeric_limits<double>::infinity();
+ absolute_bound[i] = std::numeric_limits<double>::infinity();
  }
  absolute_bound[dimension - 1] = 1.4 * distances[dimension - 1][source];
  
@@ -480,7 +480,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  absolute_bound[3] = 0.01 * absolute_bound[dimension - 1];    // VSG
  absolute_bound[4] = 0.01 * absolute_bound[dimension - 1];   // Siedlungen
  
- cout << "Running first phase... ";
+ std::cout << "Running first phase... ";
  
  list<pair<NodeArray<Point *>, NodeArray<edge>>> solutions;
  
@@ -511,7 +511,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  duration<double> fp_computation_span
  = duration_cast<duration<double>>(fp_end - heuristic_end);
  
- cout << "Done. (" << fp_computation_span.count() << "s)" << endl;
+ std::cout << "Done. (" << fp_computation_span.count() << "s)" << std::endl;
  
  vector<list<node>> paths;
  vector<Point> values;
@@ -529,7 +529,7 @@ void EpMartinsModule::calculate_ideal_heuristic(
  solver.set_path_callback(path_callback);
  solver.set_value_callback(value_callback);
  
- cout << "Running Martins algorithm... ";
+ std::cout << "Running Martins algorithm... ";
  std::flush(cout);
  
  solver.Solve(graph,
@@ -546,17 +546,17 @@ void EpMartinsModule::calculate_ideal_heuristic(
  duration<double> martins_computation_span
  = duration_cast<duration<double>>(martins_end - fp_end);
  
- cout << "Done. (" << martins_computation_span.count() << "s)" << endl;
+ std::cout << "Done. (" << martins_computation_span.count() << "s)" << std::endl;
  
- cout << "Size of the Pareto-frontier: " << solver.solutions().size() << endl;
+ std::cout << "Size of the Pareto-frontier: " << solver.solutions().size() << std::endl;
  
  if(values.size() < 25) {
  for(auto value : values) {
- cout << value << endl;
+ std::cout << value << std::endl;
  }
  }
  
  } else {
- cout << "Unknown algorithm: " << algorithm << endl;
+ std::cout << "Unknown algorithm: " << algorithm << std::endl;
  }
 */

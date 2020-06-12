@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __mco__benson_module__
-#define __mco__benson_module__
+#ifndef __mco__ep_benson_module__
+#define __mco__ep_benson_module__
 
 #include <list>
 
@@ -31,4 +31,4 @@ private:
     
 };
 
-#endif /* defined(__mco__benson_module__) */
+#endif /* defined(__mco__ep_benson_module__) */

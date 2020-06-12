@@ -196,7 +196,7 @@ void EpSolverBS::Solve(const Graph& graph,
 	while(!queue.empty()) {
 		node n = queue.front();
 
-//		cout << n << ": ";
+//		std::cout << n << ": ";
 
 		list<const Point *> &currentNodeLabels = labels[n];
 
@@ -226,7 +226,7 @@ void EpSolverBS::Solve(const Graph& graph,
                 continue;
             }
 
-//			cout << v << ", ";
+//			std::cout << v << ", ";
 
 			list<const Point *> new_labels;
 
@@ -269,7 +269,7 @@ void EpSolverBS::Solve(const Graph& graph,
 		queue.pop();
 		nodes_in_queue[n] = false;
         
-//      cout << endl;
+//      std::cout << std::endl;
 
 		assert(queue.size() <= static_cast<unsigned>(graph.numberOfNodes()));
 	}

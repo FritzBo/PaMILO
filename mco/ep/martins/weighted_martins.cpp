@@ -37,15 +37,15 @@ namespace mco {
 bool EpWeightedMartins::NodeEntry::
 add_label(Label& new_label) {
     
-//    cout << "new label:" << endl;
-//    cout << *new_label.point << endl;
-//    cout << "old labels:" << endl;
+//    std::cout << "new label:" << std::endl;
+//    std::cout << *new_label.point << std::endl;
+//    std::cout << "old labels:" << std::endl;
 //    for(auto label : label_set) {
 //        if(label != nullptr) {
-//            cout << *label->point << endl;
+//            std::cout << *label->point << std::endl;
 //        }
 //    }
-//    cout << endl;
+//    std::cout << std::endl;
     
     // If hull matrix is not set, set it
     if(hull_matrix == nullptr) {
@@ -160,14 +160,14 @@ add_label(Label& new_label) {
             }
         }
         
-//        cout << "new label set:" << endl;
+//        std::cout << "new label set:" << std::endl;
 //        for(auto label : label_set) {
 //            if(label != nullptr) {
-//                cout << *label->point << endl;
+//                std::cout << *label->point << std::endl;
 //            }
 //        }
-//        cout << endl;
-//        cout << endl;
+//        std::cout << std::endl;
+//        std::cout << std::endl;
         
         return true;
     }
@@ -209,11 +209,11 @@ Solve(Graph& graph,
 		node n = label->n;
         
         if(n == target) {
-//            cout << *label_cost << endl;
+//            std::cout << *label_cost << std::endl;
             continue;
         }
 
-//		cout << endl << n << ", " << *label->point << ": ";
+//		std::cout << std::endl << n << ", " << *label->point << ": ";
 
 		AdjElement *adj;
 		for(auto adj : n->adjEntries) {
@@ -236,7 +236,7 @@ Solve(Graph& graph,
 			if(v == source)
 				continue;
 
-//			cout << v << ", ";
+//			std::cout << v << ", ";
 
 			const Point *edge_cost = weights(e);
 			const Point *new_cost = new Point(*edge_cost + *label_cost);			// Owner
@@ -281,12 +281,12 @@ Solve(Graph& graph,
 
 //	for(Label *label : labels[instance().target()]) {
 //		const Label *current_label = label;
-//		cout << "(";
+//		std::cout << "(";
 //		while(current_label->n != instance().source()) {
-//			cout << current_label->n << ", ";
+//			std::cout << current_label->n << ", ";
 //			current_label = current_label->pred;
 //		}
-//		cout << current_label->n << ")" << endl;
+//		std::cout << current_label->n << ")" << std::endl;
 //	}
 
 	node n;

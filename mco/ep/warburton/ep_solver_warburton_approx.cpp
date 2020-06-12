@@ -49,8 +49,8 @@ void EpSolverWarburtonApprox::Solve() {
 	vector<EdgeArray<int>> weight_functions(dimension - 1, EdgeArray<int>(graph, 0));
 	NodeArray<int> distances(graph);
 	NodeArray<edge> predecessor(graph);
-	vector<double> min_e(dimension - 1, numeric_limits<double>::infinity());
-	vector<double> max_e(dimension - 1, - numeric_limits<double>::infinity());
+	vector<double> min_e(dimension - 1, std::numeric_limits<double>::infinity());
+	vector<double> max_e(dimension - 1, - std::numeric_limits<double>::infinity());
 	vector<int> ub(dimension - 1);
 	vector<int> lb(dimension - 1);
 	vector<int> label_limits(dimension);
@@ -90,7 +90,7 @@ void EpSolverWarburtonApprox::Solve() {
 		}
 	}
 
-	label_limits[dimension - 1] = numeric_limits<int>::infinity();
+	label_limits[dimension - 1] = std::numeric_limits<int>::infinity();
 
 	std::cout << "bounds:" << std::endl;
 	for(unsigned int k = 0; k < dimension - 1; ++k)

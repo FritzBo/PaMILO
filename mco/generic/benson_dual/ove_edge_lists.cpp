@@ -18,6 +18,7 @@ using std::vector;
 using std::list;
 using std::set;
 using std::abs;
+using std::max;
 
 #include <ogdf/basic/Graph.h>
 
@@ -172,20 +173,20 @@ EdgeListVE::EdgeListVE(Point &initial_value, unsigned int dimension, double epsi
 		}
 	}
 
-//	cout << "inequalities:" << endl;
+//	std::cout << "inequalities:" << std::endl;
 //	for(auto ineq : list_of_inequalities_)
-//		cout << *ineq << endl;
+//		std::cout << *ineq << std::endl;
 //
-//	cout << "vertices:" << endl;
+//	std::cout << "vertices:" << std::endl;
 //	for(node v : vertex_graph_.nodes) {
-//		cout << *node_points_[v] << endl;
-//		cout << "Node inequalities:" << endl;
+//		std::cout << *node_points_[v] << std::endl;
+//		std::cout << "Node inequalities:" << std::endl;
 //			for(auto index: *node_inequality_indices_[v])
-//				cout << index << ", ";
-//			cout << endl;
+//				std::cout << index << ", ";
+//			std::cout << std::endl;
 //	}
 //
-//	cout << "graph has " << vertex_graph_.numberOfNodes() << " nodes and " << vertex_graph_.numberOfEdges() << " edges" << endl;
+//	std::cout << "graph has " << vertex_graph_.numberOfNodes() << " nodes and " << vertex_graph_.numberOfEdges() << " edges" << std::endl;
 }
 
 Point* EdgeListVE::to_projective(Point &non_projective_point) {
@@ -238,26 +239,26 @@ bool EdgeListVE::has_next() {
 Point * EdgeListVE::next_vertex() {
 	Point *point;
 
-//	cout << *unprocessed_projective_points_.front() << " noch im Graphen: " << point_nodes_.count(unprocessed_projective_points_.front()) << endl;
+//	std::cout << *unprocessed_projective_points_.front() << " noch im Graphen: " << point_nodes_.count(unprocessed_projective_points_.front()) << std::endl;
 	while(!unprocessed_projective_points_.empty() && point_nodes_.count(unprocessed_projective_points_.top()) == 0)
 		unprocessed_projective_points_.pop();
 
-//	cout << *node_points_[point_nodes_[unprocessed_projective_points_.front()]] << endl;
+//	std::cout << *node_points_[point_nodes_[unprocessed_projective_points_.front()]] << std::endl;
 
 	if(unprocessed_projective_points_.empty())
 		return nullptr;
 
 	point = unprocessed_projective_points_.top();
-//	cout << *point << ", dim: " << point->dimension() << endl;
+//	std::cout << *point << ", dim: " << point->dimension() << std::endl;
 	Point * new_point = new Point(dimension_);
 
 //	for(auto entity: point_nodes_)
-//		cout << *entity.first << " - " << entity.second << ", dim: " << entity.first->dimension() << endl;
+//		std::cout << *entity.first << " - " << entity.second << ", dim: " << entity.first->dimension() << std::endl;
 
 	assert(point->dimension() == dimension_ + 1);
 
 	if(abs((*point)[dimension_] - 1) > epsilon_) {
-//		cout << "Point " << *point << " is not normalized: " << (*point)[dimension_] - 1 << endl;
+//		std::cout << "Point " << *point << " is not normalized: " << (*point)[dimension_] - 1 << std::endl;
 		assert(false);
 	}
 
@@ -270,9 +271,9 @@ Point * EdgeListVE::next_vertex() {
 }
 
 void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
-//	cout << vertex << endl;
-//	cout << normal << endl;
-//	cout << rhs << endl;
+//	std::cout << vertex << std::endl;
+//	std::cout << normal << std::endl;
+//	std::cout << rhs << std::endl;
 
 	clock_t start = clock();
 
@@ -281,8 +282,8 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
 	list_of_inequalities_.push_back(projective_normal);
 
-//	cout << "Inequality no.: " << list_of_inequalities_.size() - 1 << endl;
-//	cout << *projective_normal << endl;
+//	std::cout << "Inequality no.: " << list_of_inequalities_.size() - 1 << std::endl;
+//	std::cout << *projective_normal << std::endl;
 
 	// Check if redundancy is introduced
 //	dd_set_global_constants();
@@ -304,7 +305,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 //	rows = dd_RedundantRows(A, &err);
 //
 //	if(set_card(rows) > 0) {
-//		cout << "CDD giving redundant inequalities: " << set_card(rows) << endl;
+//		std::cout << "CDD giving redundant inequalities: " << set_card(rows) << std::endl;
 //		dd_WriteMatrix(stdout, A);
 //		set_write(rows);
 //		assert(false);
@@ -318,7 +319,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 	list<node> active_nodes;
 	active_nodes.push_back(get_node(vertex));
 
-//	cout << "Root node: " << get_node(vertex) << endl;
+//	std::cout << "Root node: " << get_node(vertex) << std::endl;
 
 	list<node> new_face_nodes;
 
@@ -333,21 +334,20 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
 		node active_node = active_nodes.front();
 		active_nodes.pop_front();
-//		cout << "active node: " << active_node << endl;
+//		std::cout << "active node: " << active_node << std::endl;
 		assert(active_node != nullptr);
 
 		Point *projective_vertex = node_points_[active_node];
 
-//		cout << "vertex: " << *projective_vertex << endl;
+//		std::cout << "vertex: " << *projective_vertex << std::endl;
 
 		NodeArray<bool> neighbor_checked(vertex_graph_, false);
 
-		AdjElement *adj;
-		for(auto adj : active_node.adjEntries) {
+		for(auto adj : active_node->adjEntries) {
 
 			node neighbor = adj->theEdge()->target();
 
-//			cout << "neighbor: " << neighbor << endl;
+//			std::cout << "neighbor: " << neighbor << std::endl;
 
 			if(neighbor == active_node)
 				continue;
@@ -359,10 +359,10 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
 			Point *projective_check_point = node_points_[neighbor];
 
-//			cout << "neighbor to check: " << *projective_check_point << endl;
+//			std::cout << "neighbor to check: " << *projective_check_point << std::endl;
 
 //			for(auto n : new_face_nodes)
-//				cout << "1 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
+//				std::cout << "1 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << std::endl;
 
 			node new_node = nullptr;
 
@@ -372,13 +372,13 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 					active_nodes.push_back(neighbor);
 					already_active[neighbor] = true;
 				}
-//				cout << "neighbor is also outside" << endl;
+//				std::cout << "neighbor is also outside" << std::endl;
 				continue;
 
 			} else if((*projective_normal) * (*projective_check_point) < epsilon_) {
 				nondegenerate = false;
 				new_node = neighbor;
-//				cout << "neighbor " << new_node << " resides on hyperplane" << endl;
+//				std::cout << "neighbor " << new_node << " resides on hyperplane" << std::endl;
 
 				if(node_active_index_sets[new_node] == nullptr)
 					node_active_index_sets[new_node] = new list<list<int>>();
@@ -397,42 +397,42 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
 			} else {
 
-//				cout << "On hyperplane check: " << (*projective_normal) * (*projective_check_point) << endl;
+//				std::cout << "On hyperplane check: " << (*projective_normal) * (*projective_check_point) << std::endl;
 
 				double alpha = - (*projective_normal) * (*projective_vertex);
 				Point diff_direction = (*projective_check_point) - (*projective_vertex);
 
 				if(abs((*projective_normal) * diff_direction) < epsilon_) {
-//					cout << "divisor: " << (*projective_normal) * diff_direction << endl;
+//					std::cout << "divisor: " << (*projective_normal) * diff_direction << std::endl;
 					continue;
 				} else
 					alpha /=  (*projective_normal) * diff_direction;
 
 //				for(auto n : new_face_nodes)
-//					cout << "2 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
+//					std::cout << "2 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << std::endl;
 
-//				cout << "diff direction: " << diff_direction << endl;
-//				cout << "alpha: " << alpha << endl;
+//				std::cout << "diff direction: " << diff_direction << std::endl;
+//				std::cout << "alpha: " << alpha << std::endl;
 
 				assert( alpha > epsilon_ && alpha < 1 + epsilon_);
 
 //				for(auto n : new_face_nodes)
-//					cout << "3 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
+//					std::cout << "3 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << std::endl;
 
 				diff_direction *= alpha;
 				Point *projective_cut_point = new Point(normalize_projective((*projective_vertex) + diff_direction));
 
-//				cout << "new cut vertex: " << *projective_cut_point << endl;
+//				std::cout << "new cut vertex: " << *projective_cut_point << std::endl;
 
 				unprocessed_projective_points_.push(projective_cut_point);
 
 //				for(auto n : new_face_nodes)
-//					cout << "4 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
+//					std::cout << "4 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << std::endl;
 
-//				cout << adj->theEdge() << endl;
+//				std::cout << adj->theEdge() << std::endl;
 				list<int> * old_indices = edge_inequality_indices_[adj->theEdge()];
 				edge new_edge = vertex_graph_.split(adj->theEdge());
-//				cout << adj->theEdge() << endl;
+//				std::cout << adj->theEdge() << std::endl;
 				new_node = new_edge->source();
 
 				assert(old_indices != nullptr);
@@ -450,7 +450,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 						old_indices->begin(), old_indices->end());
 
 				node_inequality_indices_[new_node] = new list<int>();
-//				cout << (void *) new_node << endl;
+//				std::cout << (void *) new_node << std::endl;
 
 				set_intersection(	node_inequality_indices_[active_node]->begin(),
 									node_inequality_indices_[active_node]->end(),
@@ -458,7 +458,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 									node_inequality_indices_[neighbor]->end(),
 									back_inserter(*node_inequality_indices_[new_node]));
 
-//				cout << "New node: " << new_node << endl;
+//				std::cout << "New node: " << new_node << std::endl;
 
 				new_edge = vertex_graph_.newEdge(neighbor, new_node);
 
@@ -471,23 +471,23 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 				birth_index_[new_node] = list_of_inequalities_.size() - 1;
 
 //				for(auto n : new_face_nodes)
-//					cout << "5 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
+//					std::cout << "5 face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << std::endl;
 
 				point_nodes_.insert(make_pair(projective_cut_point, new_node));
 			}
 
 //			for(auto n : new_face_nodes)
-//				cout << "face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
+//				std::cout << "face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << std::endl;
 
 			new_face_nodes.push_back(new_node);
 			node_inequality_indices_[new_node]->push_back(list_of_inequalities_.size() - 1);
 
 //			for(auto n : new_face_nodes)
-//				cout << "face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << endl;
+//				std::cout << "face node: " << n << " with point: " << *node_points_[n] << " at address " << (void *) n << std::endl;
 
 		}	// for all adj
 
-//		cout << "Deleting node: " << active_node << endl;
+//		std::cout << "Deleting node: " << active_node << std::endl;
 		delete node_inequality_indices_[active_node];
 
 		edge e;
@@ -502,10 +502,10 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
 	}	// active node
 
-//	cout << "Checking face nodes: ";
+//	std::cout << "Checking face nodes: ";
 //	for(auto n : new_face_nodes)
-//		cout << n << ", ";
-//	cout << endl;
+//		std::cout << n << ", ";
+//	std::cout << std::endl;
 
 	for(auto iter1 = new_face_nodes.begin(); iter1 != new_face_nodes.end(); ++iter1) {
 		auto n1 = *iter1;
@@ -521,30 +521,30 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 //				if(inside_face(n1, n2, nondegenerate))
 //					continue;
 
-//			cout << "Checking node " << n1 << " and " << n2 << endl;
+//			std::cout << "Checking node " << n1 << " and " << n2 << std::endl;
 
-//			cout << n1 << ":" << endl;
-//			cout << "Active indices: ";
+//			std::cout << n1 << ":" << std::endl;
+//			std::cout << "Active indices: ";
 //			for(int &index : *node_inequality_indices_[n1])
-//				cout << index << ", ";
-//			cout << endl;
-//			cout << "Active edge index sets:" << endl;
+//				std::cout << index << ", ";
+//			std::cout << std::endl;
+//			std::cout << "Active edge index sets:" << std::endl;
 //			for(auto &index_set : *node_active_index_sets[n1]) {
 //				for(auto index : index_set)
-//					cout << index << ", ";
-//				cout << endl;
+//					std::cout << index << ", ";
+//				std::cout << std::endl;
 //			}
 
-//			cout << n2 << ":" << endl;
-//			cout << "Active indices: ";
+//			std::cout << n2 << ":" << std::endl;
+//			std::cout << "Active indices: ";
 //			for(int &index : *node_inequality_indices_[n2])
-//				cout << index << ", ";
-//			cout << endl;
-//			cout << "Active edge index sets:" << endl;
+//				std::cout << index << ", ";
+//			std::cout << std::endl;
+//			std::cout << "Active edge index sets:" << std::endl;
 //			for(auto &index_set : *node_active_index_sets[n2]) {
 //				for(auto index : index_set)
-//					cout << index << ", ";
-//				cout << endl;
+//					std::cout << index << ", ";
+//				std::cout << std::endl;
 //			}
 
 			bool add_edge = false;
@@ -558,7 +558,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 										active_indices_n2.end(),
 										back_inserter(active_inequalities));
 
-//					cout << active_inequalities.size() << endl;
+//					std::cout << active_inequalities.size() << std::endl;
 
 					if(active_inequalities.size() == dimension_ - 2) {
 						add_edge = true;
@@ -586,9 +586,9 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 						active_inequalities.begin(), active_inequalities.end());
 				edge_inequality_indices_[e]->push_back(list_of_inequalities_.size() - 1);
 
-//				cout << "Adding edge" << endl;
+//				std::cout << "Adding edge" << std::endl;
 			} else {
-//				cout << "No edge" << endl;
+//				std::cout << "No edge" << std::endl;
             }
 		}
 
@@ -597,7 +597,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 			assert((n1->indeg() >= 2 && n1->outdeg() >= 2) || abs((*node_points_[n1])[dimension_]) < epsilon_);
 		else
 			if(((unsigned int) n1->indeg() < dimension_ || (unsigned int) n1->outdeg() < dimension_) && abs((*node_points_[n1])[dimension_]) > epsilon_) {
-				cout << "node " << n1 << " with point " << *node_points_[n1] << " has indegree " << n1->indeg() << " and outdegree " << n1->outdeg() << endl;
+				std::cout << "node " << n1 << " with point " << *node_points_[n1] << " has indegree " << n1->indeg() << " and outdegree " << n1->outdeg() << std::endl;
 				assert(false);
 			}
 #endif
@@ -609,7 +609,7 @@ void EdgeListVE::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 }
 
 bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
-//	cout << "p1: " << p1 << " (" << point_nodes_[&p1] << "), p2: " << p2 << " (" << point_nodes_[&p2] << ")" << endl;
+//	std::cout << "p1: " << p1 << " (" << point_nodes_[&p1] << "), p2: " << p2 << " (" << point_nodes_[&p2] << ")" << std::endl;
 
 	Point p1 = *node_points_[n1];
 	Point p2 = *node_points_[n2];
@@ -658,11 +658,11 @@ bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 
 			set<Point *, LexPointComparator> new_vertices(comp_);
 
-//			cout << "inequality: " << *inequality << endl;
+//			std::cout << "inequality: " << *inequality << std::endl;
 
 			node n;
 			for(node n : vertex_graph_.nodes) {
-//					cout << "checking node " << n << " with point " << *node_points_[n] << ": " << (*inequality) * (*node_points_[n]) << endl;
+//					std::cout << "checking node " << n << " with point " << *node_points_[n] << ": " << (*inequality) * (*node_points_[n]) << std::endl;
 				if(abs((*inequality) * (*node_points_[n])) < epsilon_)
 					new_vertices.insert(node_points_[n]);
 			}
@@ -672,17 +672,17 @@ bool EdgeListVE::inside_face(node n1, node n2, bool nondegenerate) {
 			else {
 				list<Point *> temp_points;
 				set_intersection(common_vertices.begin(), common_vertices.end(), new_vertices.begin(), new_vertices.end(), back_inserter(temp_points), comp_);
-//					cout << "intersection size: "<< temp_points.size() << endl;
+//					std::cout << "intersection size: "<< temp_points.size() << std::endl;
 				common_vertices.clear();
 				common_vertices.insert(temp_points.begin(), temp_points.end());
 			}
 
-//				cout << "current number of common vertices: " << common_vertices.size() << endl;
+//				std::cout << "current number of common vertices: " << common_vertices.size() << std::endl;
 
 			i += 1;
 		}
 
-//		cout << "Number of common vertices: " << common_vertices.size() << endl;
+//		std::cout << "Number of common vertices: " << common_vertices.size() << std::endl;
 
 		if(common_vertices.size() == 2)
 			return false;

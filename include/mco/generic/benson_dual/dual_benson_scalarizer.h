@@ -72,17 +72,17 @@ Calculate_solutions(std::list<Point *>& solutions) {
     
     for(unsigned int i = 0; i < dimension_ - 1; ++i)
         v[i] = 0;
-        v[0] = 1;
+	v[0] = 1;
 
-        v[dimension_ - 1] = solver_(v, value);
-    
-        solutions.push_back(new Point(value));
-        
-        vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
-        delete vertex_container->next_vertex();
-        
-        Point *candidate, weighting(dimension_), inequality(dimension_);
-        double scalar_value;
+	v[dimension_ - 1] = solver_(v, value);
+
+	solutions.push_back(new Point(value));
+	
+	vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
+	delete vertex_container->next_vertex();
+	
+	Point *candidate, weighting(dimension_), inequality(dimension_);
+	double scalar_value;
     while(vertex_container->has_next()) {
         iteration_counter++;
         
@@ -104,7 +104,7 @@ Calculate_solutions(std::list<Point *>& solutions) {
         weighting[dimension_ - 1] = 1 - sum;
         
         for(unsigned int i = 0; i < dimension_; ++i)
-        value[i] = 0;
+			value[i] = 0;
         
 #ifndef NDEBUG
         std::cout << "weighting: " << weighting << std::endl;

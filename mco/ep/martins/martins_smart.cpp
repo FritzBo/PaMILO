@@ -128,12 +128,12 @@ void EpSolverMartinsSmart::Solve() {
 
 //	for(auto label : labels[instance().target()]) {
 //		auto current_label = label;
-//		cout << "(";
+//		std::cout << "(";
 //		while(current_label->n != instance().source()) {
-//			cout << current_label->n << ", ";
+//			std::cout << current_label->n << ", ";
 //			current_label = current_label->pred;
 //		}
-//		cout << current_label->n << ")" << endl;
+//		std::cout << current_label->n << ")" << std::endl;
 //	}
     
     list<pair<const list<edge>, const Point>> solutions;

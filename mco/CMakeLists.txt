@@ -1,6 +1,6 @@
 include_directories(../include)
 #include_directories(${GUROBI_INCLUDE_PATH})
-#include_directories(${COIN_INCLUDE_PATH})
+include_directories(${OSI_INCLUDE_DIRS})
 include_directories(${OGDF_INCLUDE_DIRS})
 
 set(SOURCE_FILES
@@ -28,16 +28,17 @@ set(SOURCE_FILES
 #../include/mco/ap/brute_force/ap_brute_force_solver.h
 #../include/mco/ap/molp_solver/assignment_molp_model.h
 
-## Benchmarks
-#../include/mco/benchmarks/abstract_objective_vector_generator.h
-#../include/mco/benchmarks/correlated_random.h
-#../include/mco/benchmarks/graph_generators.h
-#../include/mco/benchmarks/graph_parser.h
-#../include/mco/benchmarks/kurz_parser.h
+# Benchmarks
+../include/mco/benchmarks/abstract_objective_vector_generator.h
+../include/mco/benchmarks/correlated_random.h
+../include/mco/benchmarks/graph_generators.h
+../include/mco/benchmarks/graph_parser.h
+../include/mco/benchmarks/kurz_parser.h
 #../include/mco/benchmarks/mcap_parser.h
 #../include/mco/benchmarks/pge10_parser3_ap.h
-#../include/mco/benchmarks/random_objective_generator.h
-#../include/mco/benchmarks/temporary_graphs_parser.h
+../include/mco/benchmarks/random_objective_generator.h
+../include/mco/benchmarks/temporary_graphs_parser.h
+../include/mco/benchmarks/lp_parser.h
 
 # MO Shortest Path
 ../include/mco/ep/basic/ep_instance.h
@@ -80,6 +81,10 @@ set(SOURCE_FILES
 #../include/mco/molp/benson/benson.h
 #../include/mco/molp/weightset/weightset_solver.h
 
+# Parametric Integer Linear Programming
+../include/mco/pilp/pilp_dual_benson.h
+../include/mco/pilp/coin.h
+
 
 #### Sources ####
 
@@ -91,15 +96,16 @@ set(SOURCE_FILES
 #ap/brute_force/ap_brute_force_solver.cpp
 #ap/molp_solver/assignment_molp_model.cpp
 
-## Benchmarks
-#benchmarks/correlated_random.cpp
-#benchmarks/graph_generators.cpp
-#benchmarks/graph_parser.cpp
-#benchmarks/kurz_parser.cpp
+# Benchmarks
+benchmarks/correlated_random.cpp
+benchmarks/graph_generators.cpp
+benchmarks/graph_parser.cpp
+benchmarks/kurz_parser.cpp
 #benchmarks/mcap_parser.cpp
 #benchmarks/pge10_parser3_ap.cpp
-#benchmarks/random_objective_generator.cpp
-#benchmarks/temporary_graphs_parser.cpp
+benchmarks/random_objective_generator.cpp
+benchmarks/temporary_graphs_parser.cpp
+benchmarks/lp_parser.cpp
 
 # MO Shortest Path
 ep/basic/ep_instance.cpp

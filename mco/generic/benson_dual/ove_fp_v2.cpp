@@ -19,6 +19,7 @@ using std::make_pair;
 using std::set;
 using std::make_heap;
 using std::vector;
+using std::max;
 
 #include <mco/basic/point.h>
 
@@ -232,20 +233,20 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 #ifndef NDEBUG
     bool debug_output = false;
     if(debug_output) {
-        cout << "Checking adjacency of " << p1 << " and " << p2 << endl;
-        cout << "With father points ";
+        std::cout << "Checking adjacency of " << p1 << " and " << p2 << std::endl;
+        std::cout << "With father points ";
         if(p1.father() != nullptr) {
-            cout << *p1.father();
+            std::cout << *p1.father();
         } else {
-            cout << "NULL";
+            std::cout << "NULL";
         }
-        cout << " and ";
+        std::cout << " and ";
         if(p2.father() != nullptr) {
-            cout << *p2.father();
+            std::cout << *p2.father();
         } else {
-            cout << "NULL";
+            std::cout << "NULL";
         }
-        cout << "." << endl;
+        std::cout << "." << std::endl;
     }
 #endif
     
@@ -254,7 +255,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
     if(std::abs(p1[dimension_]) < epsilon_ && std::abs(p2[dimension_]) < epsilon_) {
 #ifndef NDEBUG
         if(debug_output) {
-            cout << "Since both points are at infinity, they cannot be adjacent." << endl;
+            std::cout << "Since both points are at infinity, they cannot be adjacent." << std::endl;
         }
 #endif
         return false;
@@ -263,7 +264,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
     if(p1.father() == &p2 || p2.father() == &p1) {
 #ifndef NDEBUG
         if(debug_output) {
-            cout << "One is the father of the other, so they are adjacent." << endl;
+            std::cout << "One is the father of the other, so they are adjacent." << std::endl;
         }
 #endif
         return true;
@@ -334,7 +335,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 		if(!nc2) {
 #ifndef NDEBUG
             if(debug_output) {
-                cout << "Not adjacent, because auf NC2" << endl;
+                std::cout << "Not adjacent, because auf NC2" << std::endl;
             }
 #endif
 			return false;
@@ -344,7 +345,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 		if(tight_inequalities.size() < dimension_ - 2) {
 #ifndef NDEBUG
             if(debug_output) {
-                cout << "Not adjacent, because of NC1" << endl;
+                std::cout << "Not adjacent, because of NC1" << std::endl;
             }
 #endif
 			return false;
@@ -365,7 +366,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
                 
 #ifndef NDEBUG
                 if(debug_output) {
-                    cout << "checking point " << *test_point << ": " <<
+                    std::cout << "checking point " << *test_point << ": " <<
                     inequality * *test_point;
                 }
 #endif
@@ -374,7 +375,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 					common_vertices[i] = false;
 #ifndef NDEBUG
                     if(debug_output) {
-                        cout << " X" << endl;
+                        std::cout << " X" << std::endl;
                     }
 #endif
                 }
@@ -382,7 +383,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
 #ifndef NDEBUG
                 else {
                     if(debug_output) {
-                        cout << endl;
+                        std::cout << std::endl;
                     }
                 }
 #endif
@@ -396,7 +397,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
                                            true);        
 #ifndef NDEBUG
         if(debug_output) {
-            cout << "Number of common points: " << common_count << endl;
+            std::cout << "Number of common points: " << common_count << std::endl;
         }
 #endif
         
@@ -419,7 +420,7 @@ add_cut_point(const GraphlessPoint& outside_point,
 #ifndef NDEBUG
     bool debug_output = false;
     if(debug_output)
-        cout << "+-> Adding new point between outside point " << outside_point <<
+        std::cout << "+-> Adding new point between outside point " << outside_point <<
         " and inside point " << inside_point << " : ";
 #endif
     
@@ -449,14 +450,14 @@ add_cut_point(const GraphlessPoint& outside_point,
         
 #ifndef NDEBUG
     if(debug_output) {
-        cout << *cut_point << endl;
+        std::cout << *cut_point << std::endl;
     }
 #endif
 
 #ifndef NDEBUG
     if(cut_point->active_inequalities_.size() < dimension_) {
-        cout << "New point " << *cut_point << " has only " <<
-        cut_point->active_inequalities_.size() << " active inequalities" << endl;
+        std::cout << "New point " << *cut_point << " has only " <<
+        cut_point->active_inequalities_.size() << " active inequalities" << std::endl;
         assert(false);
     }
 #endif

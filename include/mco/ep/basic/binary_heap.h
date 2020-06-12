@@ -338,7 +338,7 @@ void BinaryHeap2<key, HeapObject>::clear()
 template <class key, class HeapObject>
 void BinaryHeap2<key, HeapObject>::siftUp(int pos)
 {
-        OGDF_ASSERT( (pos > 0) && (pos <= ogdf::HeapBase<key,HeapObject>::m_size) )
+        OGDF_ASSERT( (pos > 0) && (pos <= ogdf::HeapBase<key,HeapObject>::m_size) );
 
                 if (pos == 1)
                 {
