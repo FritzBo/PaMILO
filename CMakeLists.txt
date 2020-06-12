@@ -50,6 +50,11 @@ find_library(OSI
 #	~/.local/
 #)
 #
+
+## CPLEX
+find_library(CPLEX_LIB_PATH
+	NAMES cplex)
+
 find_path(OSI_INCLUDE_DIRS
     NAMES coin
     PATHS /usr/local/
