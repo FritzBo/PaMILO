@@ -25,7 +25,7 @@ class ILP {
 public:
 	OSI osi;
 	int dimension;
-	std::vector<std::map<int,double>> obj;
+	std::vector<int> obj;
 
 	ILP() {}
 };

@@ -64,7 +64,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
     }
 }
 
-const list<pair<const list<ogdf::edge>, const Point>>& PilpBensonModule::solutions() {
+const list<pair<const list<string>, const Point>>& PilpBensonModule::solutions() {
     return solutions_;
 }
 

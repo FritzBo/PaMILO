@@ -16,7 +16,7 @@
 #include <queue>
 #include <list>
 
-#include <ogdf/basic/Graph.h>
+//#include <ogdf/basic/Graph.h>
 
 #include <mco/basic/point.h>
 

@@ -13,7 +13,6 @@
 #include <iterator>
 
 #include <mco/basic/point.h>
-#include <mco/basic/abstract_graph_instance.h>
 
 namespace mco {
 

@@ -11,22 +11,20 @@
 
 #include <list>
 
-#include <ogdf/basic/Graph.h>
-
 #include "../basic/modules.h"
 
-class PilpBensonModule : public AlgorithmModule<std::list<ogdf::edge>> {
+class PilpBensonModule : public AlgorithmModule<std::list<std::string>> {
     
 public:
     virtual void perform(int argc, char** args);
     virtual ~PilpBensonModule() {}
     
-    virtual const std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>>& solutions();
+    virtual const std::list<std::pair<const std::list<std::string>, const mco::Point>>& solutions();
     virtual std::string statistics();
     
 private:
     
-    std::list<std::pair<const std::list<ogdf::edge>, const mco::Point>> solutions_;
+    std::list<std::pair<const std::list<std::string>, const mco::Point>> solutions_;
 
     
 };
