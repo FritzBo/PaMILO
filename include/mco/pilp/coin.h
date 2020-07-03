@@ -10,8 +10,6 @@
 
 #pragma once
 
-#include <ogdf/basic/List.h>
-
 // Cplex
 #include <coin/OsiCpxSolverInterface.hpp>
 typedef OsiCpxSolverInterface OSI;

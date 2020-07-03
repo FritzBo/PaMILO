@@ -293,7 +293,8 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
     }
 #endif
     
-    if(dimension_ <= 3) {
+	// TODO: change back to 3
+    if(dimension_ <= 2) {
         
 		list<int> inequality_intersection;
                 

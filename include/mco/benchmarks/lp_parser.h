@@ -11,8 +11,6 @@
 
 #include <string>
 
-#include <ogdf/basic/Graph.h>
-
 #include <mco/pilp/coin.h>
 
 namespace mco {

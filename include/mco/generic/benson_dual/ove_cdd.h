@@ -13,6 +13,8 @@
 #include <iostream>
 
 #include <setoper.h>
+
+//#define GMPRATIONAL
 #include <cdd.h>
 
 #include <mco/basic/point.h>

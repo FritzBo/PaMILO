@@ -219,7 +219,7 @@ inline Point operator*(double d, Point p) {
 }
     
 inline std::ostream & operator<<(std::ostream &os, const Point &point) {
-    os << "(";
+    os << "";
     
     if(point.dimension_ != 0) {
         for(unsigned int i = 0; i < point.dimension_ - 1; ++i) {
@@ -229,7 +229,7 @@ inline std::ostream & operator<<(std::ostream &os, const Point &point) {
         os << point[point.dimension_ - 1];
     }
     
-    os << ")";
+    os << "";
     
     return os;
 }

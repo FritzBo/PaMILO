@@ -21,7 +21,7 @@ add_executable(mco_cli ${SOURCE_FILES})
 
 target_link_libraries(mco_cli mco)
 target_link_libraries(mco_cli OGDF)
-target_link_libraries(mco_cli  ${CPLEX_LIB_PATH})
+target_link_libraries(mco_cli ${CPLEX_LIB_PATH})
 target_link_libraries(mco_cli ${CDD})
 target_link_libraries(mco_cli pthread)
 target_link_libraries(mco_cli ${OSI})

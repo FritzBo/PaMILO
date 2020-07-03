@@ -15,16 +15,20 @@
 
 #include <mco/basic/point.h>
 #include <mco/basic/abstract_solver.h>
-#include <mco/basic/weight_function_adaptors.h>
 #include <mco/generic/benson_dual/dual_benson_scalarizer.h>
-//#include <mco/generic/benson_dual/ove_fp_v2.h>
+
+//#define CDD_OVE
+#ifdef CDD_OVE
 #include <mco/generic/benson_dual/ove_cdd.h>
+#else
+#include <mco/generic/benson_dual/ove_fp_v2.h>
+#endif
 
 namespace mco {
 
 class ILPSolverAdaptor {
 public:
-    ILPSolverAdaptor(ILP &ilp) : ilp_(ilp) {}
+    ILPSolverAdaptor(ILP &ilp, double& time) : ilp_(ilp), time_(time) {}
     
     inline double operator()(const Point& weighting,
                              Point& value);
@@ -35,13 +39,19 @@ private:
 	ILP &ilp_;
 
     std::set<Point*, LexPointComparator> known_points_;
+
+	double &time_;
     
 };
     
+#ifdef CDD_OVE
 template<typename OnlineVertexEnumerator = OnlineVertexEnumeratorCDD>
+#else
+template<typename OnlineVertexEnumerator = GraphlessOVE>
+#endif
 class PilpDualBensonSolver : public AbstractSolver<std::list<std::string>> {
 public:
-    PilpDualBensonSolver(double epsilon = 1E-8)
+    PilpDualBensonSolver(double epsilon = 1E-6)
     :   epsilon_(epsilon) {}
     
     void Solve(ILP &ilp);
@@ -61,34 +71,27 @@ operator()(const Point& weighting,
 	int n = ilp_.osi.getNumCols();
 
 	// solve ilp with weighting
-	//std::cout << "\nweighting: ";
 	for(int i = 0; i < ilp_.dimension; i++) {
 		ilp_.osi.setObjCoeff(ilp_.obj[i], weighting[ilp_.obj[i]]);
-		//std::cout << weighting[i] << ", ";
 	}
-	//std::cout << std::endl;
 	const double *coefs = ilp_.osi.getObjCoefficients();
 
 	// solve
+	clock_t start = clock();
+	ilp_.osi.writeLp("asdf.lp");
 	ilp_.osi.branchAndBound();
-
+	time_ += (clock() - start) / double(CLOCKS_PER_SEC);
 
 	// ilp stays as is, but obj is done by weighting
 	const double *sol = ilp_.osi.getColSolution();
 
-	//std::cout << "sol:\nobj:(" << sol[0];
-	//for(int i = 1; i < ilp_.dimension; i++) {
-	//	std::cout << "," << sol[i];
-	//}
-	//std::cout << ")\nactivated vars:";
-	//for(int i = ilp_.dimension; i < n; i++) {
-	//	if(sol[i] == 1) {
-	//		//std::cout << "(" << (i-3)%40 << "," << (i-3)/40 << ")-" << i << ", ";
-	//		std::cout << i << ", ";
-	//	}
-	//}
-	//std::cout << "\n\n";
-    
+	// test for integrality of solution
+//	for(int i = 0; i < n; i++) {
+//		if(sol[i] != int(sol[i])) {
+//			std::cout << ilp_.osi.getColName(i) << " " << sol[i] << " alarm\n";
+//		}
+//	}
+
 	for(int i = 0; i < ilp_.dimension; i++) {
 		value[i] = sol[ilp_.obj[i]];
 	}
@@ -96,6 +99,8 @@ operator()(const Point& weighting,
     if(known_points_.count(&value) == 0) {
         known_points_.insert(new Point(value));
     }
+
+	std::cout << ilp_.osi.getObjValue() << " obj\n";
     
     return ilp_.osi.getObjValue();
 }
@@ -111,9 +116,10 @@ inline void PilpDualBensonSolver<OnlineVertexEnumerator>::
 Solve(ILP &ilp) {
     
     std::list<Point *> frontier;
+	double solver_time = 0;
     
     DualBensonScalarizer<OnlineVertexEnumerator>
-    dual_benson_solver(ILPSolverAdaptor(ilp),
+    dual_benson_solver(ILPSolverAdaptor(ilp,solver_time),
                        ilp.dimension,
                        epsilon_);
     
@@ -121,13 +127,16 @@ Solve(ILP &ilp) {
     
     std::list<std::pair<std::list<std::string>, Point>> solutions;
     
+	std::cout << "Solutions:\n";
     for(auto point : frontier) {
         solutions.push_back(make_pair(std::list<std::string>(), *point));
+		std::cout << *point << std::endl;
     }
                             
     add_solutions(solutions.begin(), solutions.end());
     
 	std::cout << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
+	std::cout << "lp time: " << solver_time << "\n";
 }
     
 }

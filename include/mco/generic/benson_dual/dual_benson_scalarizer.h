@@ -37,7 +37,8 @@ public:
 		solver_(solver),
 		vertex_container(nullptr),
 		vertices_(0),
-		facets_(0) {
+		facets_(0),
+		ve_time(0) {
 	}
 
 	void Calculate_solutions(std::list<Point *>& solutions);
@@ -58,6 +59,8 @@ private:
 
 	int vertices_;
 	int facets_;
+
+	double ve_time;
 };
     
 template<typename OnlineVertexEnumerator>
@@ -78,8 +81,11 @@ Calculate_solutions(std::list<Point *>& solutions) {
 
 	solutions.push_back(new Point(value));
 	
+	clock_t start = clock();
 	vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
 	delete vertex_container->next_vertex();
+	ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
+
 	
 	Point *candidate, weighting(dimension_), inequality(dimension_);
 	double scalar_value;
@@ -129,7 +135,9 @@ Calculate_solutions(std::list<Point *>& solutions) {
                 inequality[i] = value[i] - value[dimension_ - 1];
             inequality[dimension_ - 1] = -1;
             
+			clock_t start = clock();
             vertex_container->add_hyperplane(*candidate, inequality, -value[dimension_ - 1]);
+			ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
             nondominated_values++;
             
             solutions.push_back(new Point(value));
@@ -152,10 +160,7 @@ Calculate_solutions(std::list<Point *>& solutions) {
 template<typename OnlineVertexEnumerator>
 double DualBensonScalarizer<OnlineVertexEnumerator>::
 vertex_enumeration_time() {
-    if(vertex_container == nullptr)
-        return 0;
-    
-    return vertex_container->get_time();
+    return ve_time;
 }
 
 } /* namespace mco */

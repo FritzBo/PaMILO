@@ -19,6 +19,7 @@ using namespace std;
 namespace mco {
 	void LPparser::getILP(string filename, ILP &ilp) {
 		// strip objectives from file (copy w/o obj into new file)
+		ilp.osi.setIntParam(OsiIntParam::OsiNameDiscipline, 2);
 		ilp.osi.readLp(filename.c_str());
 
 		int objNum = 0;
@@ -27,6 +28,7 @@ namespace mco {
 			if(objCols[i] != 0) {
 				ilp.obj.push_back(i);
 				objNum++;
+				cout << ilp.osi.getColName(i) << endl;
 			}
 		}
 		ilp.dimension = objNum;

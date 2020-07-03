@@ -33,7 +33,11 @@ void PilpBensonModule::perform(int argc, char** argv) {
     try {
         CmdLine cmd("Dual Benson to find the Pareto-frontier of the parametric integer linear program problem.", ' ', "0.1");
         
+//#ifndef CDD_OVE
+//        ValueArg<double> epsilon_argument("e", "epsilon", "Epsilon to be used in floating point calculations.", false, dd_almostzero, "epsilon");
+//#else
         ValueArg<double> epsilon_argument("e", "epsilon", "Epsilon to be used in floating point calculations.", false, 1E-8, "epsilon");
+//#endif
         
         UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
         

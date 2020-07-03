@@ -114,8 +114,8 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 
 	if(err != dd_NoError) {
 		dd_WriteErrorMessages(stdout, err);
-		assert(false);
-        exit(-1);
+		//assert(false);
+        //exit(-1);
 	}
 
 	v_representation = dd_CopyGenerators(poly);
@@ -158,7 +158,7 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 //	std::cout << clock() - start << std::endl;
 
 	cycles_ += clock() - start;
-//	std::cout << cycles_ << std::endl;
+	//std::cout << "ove: " << cycles_ << " \t " << cycles_ / (double) CLOCKS_PER_SEC << std::endl;
 }
 
 } /* namespace mco */
