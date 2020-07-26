@@ -10,20 +10,28 @@
 
 #pragma once
 
-// Cplex
-#include <coin/OsiCpxSolverInterface.hpp>
-typedef OsiCpxSolverInterface OSI;
+#include <ilcplex/ilocplex.h>
 
-// Glpk
-//#include <coin/OsiGlpkSolverInterface.hpp>
-//typedef OsiGlpkSolverInterface OSI;
+#include <vector>
 
 
 class ILP {
 public:
-	OSI osi;
-	int dimension;
-	std::vector<int> obj;
+	IloEnv env;
+	IloModel model;
+	IloCplex cplex;
+	IloObjective obj;
+	IloNumVarArray vars;
+	IloRangeArray cons;
 
-	ILP() {}
+	std::vector<double> relScale;
+	std::vector<double> offset;
+
+	int dimension;
+
+	ILP() : model(env), cplex(env), vars(env), cons(env), dimension(-1) {}
+
+	~ILP() {
+		env.end();
+	}
 };

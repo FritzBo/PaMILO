@@ -1,6 +1,6 @@
 include_directories(../include)
-include_directories(${OSI_INCLUDE_DIRS})
-include_directories(${OGDF_INCLUDE_DIRS})
+include_directories(${CPLEX_INCLUDE_DIRS})
+include_directories(${CONCERT_INCLUDE_DIRS})
 
 set(SOURCE_FILES
 
@@ -8,13 +8,8 @@ set(SOURCE_FILES
 
 # Core
 ../include/mco/basic/point.h
-#../include/mco/basic/pareto_point_comparator.h
-#../include/mco/basic/componentwise_point_comparator.h
-#../include/mco/basic/equality_point_comparator.h
 ../include/mco/basic/lex_point_comparator.h
 ../include/mco/basic/abstract_solver.h
-#../include/mco/basic/weight_function_adaptors.h
-#../include/mco/basic/utility.h
 
 # Benchmarks
 ../include/mco/benchmarks/lp_parser.h
@@ -23,8 +18,6 @@ set(SOURCE_FILES
 ../include/mco/generic/benson_dual/abstract_online_vertex_enumerator.h
 ../include/mco/generic/benson_dual/dual_benson_scalarizer.h
 ../include/mco/generic/benson_dual/ove_cdd.h
-../include/mco/generic/benson_dual/ove_node_lists.h
-../include/mco/generic/benson_dual/ove_edge_lists.h
 ../include/mco/generic/benson_dual/ove_fp_v2.h
 
 # Geometry Tools
@@ -34,7 +27,6 @@ set(SOURCE_FILES
 ../include/mco/pilp/pilp_dual_benson.h
 ../include/mco/pilp/coin.h
 
-
 #### Sources ####
 
 # Benchmarks
@@ -42,8 +34,6 @@ benchmarks/lp_parser.cpp
 
 # Benson Dual
 generic/benson_dual/ove_cdd.cpp
-generic/benson_dual/ove_node_lists.cpp
-generic/benson_dual/ove_edge_lists.cpp
 generic/benson_dual/ove_fp_v2.cpp
 )
 

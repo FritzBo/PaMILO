@@ -18,20 +18,15 @@ using namespace std;
 
 namespace mco {
 	void LPparser::getILP(string filename, ILP &ilp) {
-		// strip objectives from file (copy w/o obj into new file)
-		ilp.osi.setIntParam(OsiIntParam::OsiNameDiscipline, 2);
-		ilp.osi.readLp(filename.c_str());
+		ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
+		ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 0);
+		ilp.cplex.setParam(IloCplex::Param::ParamDisplay, 0);
+ 	 
+		ilp.dimension = ilp.obj.getNumCriteria();
 
-		int objNum = 0;
-		const double *objCols = ilp.osi.getObjCoefficients();
-		for(int i = 0; i < ilp.osi.getNumCols(); i++) {
-			if(objCols[i] != 0) {
-				ilp.obj.push_back(i);
-				objNum++;
-				cout << ilp.osi.getColName(i) << endl;
-			}
-		}
-		ilp.dimension = objNum;
-		//cout << objNum << endl;
+		ilp.relScale.resize(ilp.dimension, 1);
+		ilp.offset.resize(ilp.dimension, 0);
+
+		ilp.cplex.extract(ilp.model);
 	}
 }
