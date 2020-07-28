@@ -65,9 +65,8 @@ public:
 			}
 			ilp_.offset[i] = offset;
 			ilp_.relScale[i] = exp2(round(log2((maxi[i] - mini[i]) / medianSpread)));
-			//std::cout << i << ", " << maxi[i] << " " << mini[i] << " spread: " << (maxi[i] - mini[i]) << ", " << log2((maxi[i] - mini[i]) / medianSpread) << std::endl;
+			std::cout << i << ", " << maxi[i] << " " << mini[i] << " spread: " << (maxi[i] - mini[i]) << ", " << log2((maxi[i] - mini[i]) / medianSpread) << std::endl;
 		}
-		//std::cout << "beg scale: " << ilp_.obj << std::endl;
 
 		IloNumExprArray objs(ilp_.env);
 		IloNumArray weights(ilp_.env);
@@ -163,9 +162,9 @@ operator()(const Point& weighting,
 	//std::cout << ilp_.obj << std::endl;
 
 	ilp_.cplex.extract(ilp_.model);
-	//clock_t start = clock();
+	clock_t start = clock();
 	ilp_.cplex.solve();
-	time_ +=  1;//(clock() - start) / double(CLOCKS_PER_SEC);
+	time_ +=  (clock() - start) / double(CLOCKS_PER_SEC);
 
 	//TODO: test if bounded
 
