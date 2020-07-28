@@ -21,7 +21,8 @@ namespace mco {
 		ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
 		ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 0);
 		ilp.cplex.setParam(IloCplex::Param::ParamDisplay, 0);
- 	 
+		ilp.cplex.setOut(ilp.env.getNullStream());
+
 		ilp.dimension = ilp.obj.getNumCriteria();
 
 		ilp.relScale.resize(ilp.dimension, 1);
