@@ -1,6 +1,7 @@
 include_directories(../include)
 include_directories(${CPLEX_INCLUDE_DIRS})
 include_directories(${CONCERT_INCLUDE_DIRS})
+include_directories(${CDD_INCLUDE_PATH})
 
 set(SOURCE_FILES
 

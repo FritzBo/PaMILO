@@ -13,9 +13,12 @@ basic/modules.cpp
 #### Modules
 modules/pilp_benson_module.h
 modules/pilp_benson_module.cpp
-)
 
-#include_directories(${BOOST_PO_INCLUDE})
+#### auxilary
+../include/mco/basic/point.h
+../include/mco/pilp/pilp_dual_benson.h
+../include/mco/generic/benson_dual/ove_cdd.h
+)
 
 add_executable(mco_cli ${SOURCE_FILES})
 
