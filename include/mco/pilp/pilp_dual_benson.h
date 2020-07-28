@@ -159,7 +159,7 @@ operator()(const Point& weighting,
 	ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
 									 prio, absTols, relTols), sense);
 	ilp_.model.add(ilp_.obj);
-	//std::cout << ilp_.obj << std::endl;
+	std::cout << ilp_.obj << std::endl;
 
 	ilp_.cplex.extract(ilp_.model);
 	clock_t start = clock();
