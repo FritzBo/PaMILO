@@ -32,7 +32,7 @@ find_path(CDD_INCLUDE_PATH
 	NAMES cdd.h
 	PATHS 	/usr/
 		/usr/local/
-	~/.local/
+		~/.local/
 		/opt/local/
 )
 
@@ -40,7 +40,7 @@ find_library(CDD
 	NAMES libcdd.a
 	PATHS	/usr/
 		/usr/local
-	~/.local/lib
+		~/.local/lib
 		/opt/local
 )
 

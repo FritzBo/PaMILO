@@ -12,9 +12,9 @@
 #include <list>
 #include <iostream>
 
+#include <setoper.h>
 //#define GMPRATIONAL
 #include <cdd.h>
-#include <setoper.h>
 
 #include <mco/basic/point.h>
 #include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>
