@@ -437,7 +437,6 @@ inline void CmdLine::parse(int argc, const char * const * argv)
 		std::vector<std::string> args;
 		for (int i = 0; i < argc; i++) {
 			args.push_back(argv[i]);
-			std::cout << argv[i] << std::endl;
 		}
 
 		parse(args);

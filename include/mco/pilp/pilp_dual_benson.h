@@ -65,7 +65,7 @@ public:
 			}
 			ilp_.offset[i] = offset;
 			ilp_.relScale[i] = exp2(round(log2((maxi[i] - mini[i]) / medianSpread)));
-			std::cout << i << ", " << maxi[i] << " " << mini[i] << " spread: " << (maxi[i] - mini[i]) << ", " << log2((maxi[i] - mini[i]) / medianSpread) << std::endl;
+			//std::cout << i << ", " << maxi[i] << " " << mini[i] << " spread: " << (maxi[i] - mini[i]) << ", " << log2((maxi[i] - mini[i]) / medianSpread) << std::endl;
 		}
 
 		IloNumExprArray objs(ilp_.env);
@@ -86,7 +86,7 @@ public:
 		ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
 										 prio, absTols, relTols), sense);
 		ilp_.model.add(ilp_.obj);
-		std::cout << ilp_.obj << std::endl;
+		//std::cout << ilp_.obj << std::endl;
 
 		ilp_.cplex.extract(ilp_.model);
 	}
@@ -197,17 +197,32 @@ Solve(ILP &ilp) {
     
     std::list<std::pair<std::list<std::string>, Point>> solutions;
     
-	std::cout << "No of solutions:\n";
+	//std::cout << "No of solutions:\n";
+	for(int i = 0; i < ilp.dimension; i++) {
+		std::cout << "0";
+		for(int j = 0; j < ilp.dimension; j++) {
+			if(i != j) {
+				std::cout << " 0";
+			} else {
+				std::cout << " 1";
+			}
+		}
+		std::cout << std::endl;
+	}
     for(auto point : frontier) {
-        solutions.push_back(make_pair(std::list<std::string>(), *point));
-		//std::cout << *point << std::endl;
+		Point pointScaled(ilp.dimension);
+		for(int i = 0; i < ilp.dimension; i++) {
+			pointScaled[i] = ((*point)[i] - ilp.offset[i]) / ilp.relScale[i];
+		}
+        solutions.push_back(make_pair(std::list<std::string>(), pointScaled));
+		std::cout << "1 " << pointScaled << std::endl;
     }
-	std::cout << solutions.size() << std::endl;
+	//std::cout << solutions.size() << std::endl;
                             
     add_solutions(solutions.begin(), solutions.end());
     
-	std::cout << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
-	std::cout << "cplex time: " << solver_time << "\n";
+	//std::cout << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
+	//std::cout << "cplex time: " << solver_time << "\n";
 }
     
 }

@@ -1,7 +1,4 @@
 #!/bin/sh
-make -j16 -C ~/Downloads/cddlib 1>/dev/null 2>/dev/null
-make install -C ~/Downloads/cddlib >/dev/null
-
 make -j16
 
 ulimit -v 12388608
@@ -12,6 +9,6 @@ do
 	if [ "$RANDOM" -le 2000 ]
 	then
 		echo $file
-		timeout 90s ./runAP.sh ../molp-algo/instances/fritzins/$file
+		./scripts/runAP.sh ../molp-algo/instances/fritzins/$file
 	fi	
 done

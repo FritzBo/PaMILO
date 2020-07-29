@@ -223,7 +223,7 @@ inline std::ostream & operator<<(std::ostream &os, const Point &point) {
     
     if(point.dimension_ != 0) {
         for(unsigned int i = 0; i < point.dimension_ - 1; ++i) {
-            os << point[i] << ", ";
+            os << point[i] << " ";
         }
         
         os << point[point.dimension_ - 1];

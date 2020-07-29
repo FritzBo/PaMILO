@@ -53,10 +53,10 @@ void PilpBensonModule::perform(int argc, char** argv) {
         
         parser.getILP(file_name, ilp);
         
-		if(false &&
-			//	ilp.dimension > 4 &&
+		if(//false &&
+				ilp.dimension > 4 &&
 				true) {
-			std::cout << "cdd ove\n";
+//			std::cout << "cdd ove\n";
 			PilpDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon);
 			solver.Solve(ilp);
 			
@@ -64,7 +64,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 							  solver.solutions().cbegin(),
 							  solver.solutions().cend());
 		} else {
-			std::cout << "graphless ove\n";
+//			std::cout << "graphless ove\n";
 			PilpDualBensonSolver<GraphlessOVE> solver(epsilon);
 			solver.Solve(ilp);
 			
