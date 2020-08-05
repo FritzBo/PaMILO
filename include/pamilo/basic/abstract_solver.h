@@ -12,18 +12,18 @@
 #include <list>
 #include <iterator>
 
-#include <mco/basic/point.h>
+#include <pamilo/basic/point.h>
 
-namespace mco {
+namespace pamilo {
 
 template<class T>
 class AbstractSolver {
 
 public:
-    
+
     using solution_type = T;
     using csolution_type = const T;
-    
+
 	AbstractSolver() = default;
 	AbstractSolver(const AbstractSolver &) = delete;
 
@@ -32,7 +32,7 @@ public:
 	const std::list<std::pair<csolution_type, const Point>> & solutions() const {
         return solutions_;
     }
-    
+
     virtual ~AbstractSolver() = default;
 
 protected:
@@ -51,11 +51,11 @@ protected:
 	}
 
 private:
-    
+
 	std::list<std::pair<csolution_type, const Point>> solutions_;
 
 };
-    
+
 }
 
 #endif /* ABSTRACT_SOLVER_H_ */

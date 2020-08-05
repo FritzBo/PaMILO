@@ -1,26 +1,26 @@
 //
 //  pilp_dual_benson.h
-//  mco
+//  pamilo
 //
 //  Created by Fritz Bökler and Mirko H. Wagner on 28.05.20.
 //
 //
 
-#ifndef __mco__pilp_dual_benson__
-#define __mco__pilp_dual_benson__
+#ifndef __pamilo__pilp_dual_benson__
+#define __pamilo__pilp_dual_benson__
 
 #include <functional>
 #include <typeinfo>
 #include <set>
 #include <math.h>
 
-#include <mco/pilp/coin.h>
+#include <pamilo/pilp/ilp.h>
 
-#include <mco/basic/point.h>
-#include <mco/basic/abstract_solver.h>
-#include <mco/generic/benson_dual/dual_benson_scalarizer.h>
+#include <pamilo/basic/point.h>
+#include <pamilo/basic/abstract_solver.h>
+#include <pamilo/generic/benson_dual/dual_benson_scalarizer.h>
 
-namespace mco {
+namespace pamilo {
 
 class ILPSolverAdaptor {
 public:
@@ -107,7 +107,7 @@ private:
 };
 
 template<typename OnlineVertexEnumerator>
-classPilpDualBensonSolver : public AbstractSolver<std::string> {
+class PilpDualBensonSolver : public AbstractSolver<std::string> {
 public:
     PilpDualBensonSolver(double epsilon = 1E-6)
     :   epsilon_(epsilon) {}
@@ -191,7 +191,7 @@ operator()(const Point& weighting,
 		sol += std::to_string(ilp_.cplex.getValue(var));
 		sol += "\n";
 	}
-	std::cout << sol << std::endl;
+	//std::cout << sol << std::endl;
 
     return ilp_.cplex.getMultiObjInfo(IloCplex::MultiObjObjValue, 0);
 }
@@ -247,7 +247,6 @@ Solve(ILP &ilp) {
 	//std::cout << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
 	//std::cout << "cplex time: " << solver_time << "\n";
 }
-
 }
 
-#endif /* defined(__mco__pilp_dual_benson__) */
+#endif /* defined(__pamilo__pilp_dual_benson__) */

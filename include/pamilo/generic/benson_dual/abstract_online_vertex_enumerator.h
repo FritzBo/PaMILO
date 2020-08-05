@@ -16,9 +16,9 @@
 #include <queue>
 #include <list>
 
-#include <mco/basic/point.h>
+#include <pamilo/basic/point.h>
 
-namespace mco {
+namespace pamilo {
 
 class AbstractOnlineVertexEnumerator {
 public:
@@ -43,6 +43,6 @@ protected:
 	clock_t cycles_;
 };
 
-} /* namespace mco */
+} /* namespace pamilo */
 
 #endif /* ABSTRACT_VERTEX_ENUMERATOR_H_ */

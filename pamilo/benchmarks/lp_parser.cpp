@@ -1,12 +1,12 @@
 //
 //  lp_parser.cpp
-//  mco
+//  pamilo
 //
 //  Created by Mirko H. Wagner on 20.06.20
 //
 //
 
-#include <mco/benchmarks/lp_parser.h>
+#include <pamilo/benchmarks/lp_parser.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -16,7 +16,7 @@
 
 using namespace std;
 
-namespace mco {
+namespace pamilo {
 	void LPparser::getILP(string filename, ILP &ilp) {
 		ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
 		ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 0);

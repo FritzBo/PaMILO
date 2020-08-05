@@ -1,7 +1,7 @@
 //
-//  pilp.h 
-//  mco
-// 
+//  cplex.h
+//  pamilo
+//
 //  Add
 //
 //  Created by Mirko H. Wagner on 20.06.20

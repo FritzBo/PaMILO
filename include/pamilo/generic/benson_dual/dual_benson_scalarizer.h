@@ -12,9 +12,9 @@
 #include <list>
 #include <functional>
 
-#include <mco/basic/point.h>
+#include <pamilo/basic/point.h>
 
-namespace mco {
+namespace pamilo {
 
 /*  OnlineVertexEnumerator Interface
  *
@@ -163,5 +163,5 @@ vertex_enumeration_time() {
     return ve_time;
 }
 
-} /* namespace mco */
+} /* namespace pamilo */
 #endif /* DUAL_BENSON_SCALARIZER_H_ */

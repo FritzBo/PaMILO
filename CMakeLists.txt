@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-project(mco)
+project(pamilo)
 
 set(module_dir "${PROJECT_SOURCE_DIR}/cmake")
 list(INSERT CMAKE_MODULE_PATH 0 "${module_dir}" )
@@ -21,28 +21,34 @@ find_path(CPLEX
 		~/opt/local
 )
 
-set(CPLEX_INCLUDE_DIRS ${CPLEX}/cplex/include)
-set(CONCERT_INCLUDE_DIRS ${CPLEX}/concert/include)
-set(ILOCPLEX_LIB_PATH ${CPLEX}/cplex/lib/x86-64_linux/static_pic/libilocplex.a)
-set(CONCERT_LIB_PATH ${CPLEX}/concert/lib/x86-64_linux/static_pic/libconcert.a)
-set(CPLEX_LIB_PATH ${CPLEX}/cplex/lib/x86-64_linux/static_pic/libcplex.a)
+find_path(CPLEX_INCLUDE_DIRS ilcplex/cplex.h PATHS ${CPLEX}/cplex/include)
+find_path(CONCERT_INCLUDE_DIRS ilconcert/iloenv.h PATHS ${CPLEX}/concert/include)
+find_library(ILOCPLEX_LIB libilocplex.a PATHS ${CPLEX}/cplex/lib/x86-64_linux/static_pic)
+find_library(CONCERT_LIB libconcert.a PATHS ${CPLEX}/concert/lib/x86-64_linux/static_pic)
+find_library(CPLEX_LIB libcplex.a PATHS ${CPLEX}/cplex/lib/x86-64_linux/static_pic)
 
 ## CDD ##
-find_path(CDD_INCLUDE_PATH
-	NAMES cdd.h
-	PATHS 	/usr/
-		/usr/local/
-		~/.local/
-		/opt/local/
-)
+option(USE_CDD "Whether to use cdd for vertex enumeration" OFF)
+if(USE_CDD)
+	find_path(CDD_INCLUDE_PATH
+		NAMES cdd.h
+		PATHS 	/usr/
+			/usr/local/
+			~/.local/
+			/opt/local/
+	)
 
-find_library(CDD
-	NAMES libcdd.a
-	PATHS	/usr/
-		/usr/local
-		~/.local/lib
-		/opt/local
-)
+	find_library(CDD
+		NAMES libcdd.a
+		PATHS	/usr/
+			/usr/local
+			~/.local/lib
+			/opt/local
+	)
+endif()
 
-add_subdirectory(mco)
+add_subdirectory(pamilo)
 add_subdirectory(cli)
+
+# create autogen header
+configure_file("cmake/config_autogen.h.in" "${PROJECT_BINARY_DIR}/config_autogen.h")
