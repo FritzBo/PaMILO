@@ -1,5 +1,5 @@
-# PILP-Solver
-Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric ILP in incremental polynomial time.
+# PaMILO (A Parametric Mixed-Integer Linear Optimization Problem Solver)
+Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric MILP in incremental polynomial time.
 
 The only assumption on the input instances is that an ideal point exists.
 
