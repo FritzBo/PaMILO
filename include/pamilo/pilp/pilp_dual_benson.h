@@ -1,26 +1,26 @@
 //
 //  pilp_dual_benson.h
-//  mco
+//  pamilo
 //
 //  Created by Fritz Bökler and Mirko H. Wagner on 28.05.20.
 //
 //
 
-#ifndef __mco__pilp_dual_benson__
-#define __mco__pilp_dual_benson__
+#ifndef __pamilo__pilp_dual_benson__
+#define __pamilo__pilp_dual_benson__
 
 #include <functional>
 #include <typeinfo>
 #include <set>
 #include <math.h>
 
-#include <mco/pilp/coin.h>
+#include <pamilo/pilp/ilp.h>
 
-#include <mco/basic/point.h>
-#include <mco/basic/abstract_solver.h>
-#include <mco/generic/benson_dual/dual_benson_scalarizer.h>
+#include <pamilo/basic/point.h>
+#include <pamilo/basic/abstract_solver.h>
+#include <pamilo/generic/benson_dual/dual_benson_scalarizer.h>
 
-namespace mco {
+namespace pamilo {
 
 class ILPSolverAdaptor {
 public:
@@ -30,19 +30,20 @@ public:
 		}
 
 		int dim = ilp_.dimension;
-		
+
 		Point weighting(dim), mini(dim), maxi(dim);
 		std::vector<double> spread(dim);
 		for(int i = 0; i < dim; i++) {
 			weighting[i] = 0;
 			mini[i] = std::numeric_limits<double>::max();
-			maxi[i] = std::numeric_limits<double>::min();
+			maxi[i] = std::numeric_limits<double>::lowest();
 		}
 
 		for(int i = 0; i < dim; i++) {
 			weighting[i] = 1;
 			Point value(dim);
-			double scalar_value = operator()(weighting, value);
+			std::string sol;
+			double scalar_value = operator()(weighting, value, sol);
 			for(int j = 0; j < dim; j++) {
 				mini[j] = std::min(mini[j], value[j]);
 				maxi[j] = std::max(maxi[j], value[j]);
@@ -54,17 +55,20 @@ public:
 			spread[i] = maxi[i] - mini[i];
 		}
 
+		auto sense = ilp_.obj.getSense();
+
 		std::nth_element(spread.begin(), spread.begin() + dim/2, spread.end());
 		double medianSpread = spread[dim/2];
 		for(int i = 0; i < dim; i++) {
-			double offset = 0; -maxi[i];
+			double offset = 0;// -maxi[i];
 			if(maxi[i] < 0) {
 				offset = -maxi[i];
 			} else if(mini[i] > 0) {
 				offset = -mini[i];
 			}
 			ilp_.offset[i] = offset;
-			ilp_.relScale[i] = exp2(round(log2((maxi[i] - mini[i]) / medianSpread)));
+			ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
+			ilp_.relScale[i] *= sense;
 			//std::cout << i << ", " << maxi[i] << " " << mini[i] << " spread: " << (maxi[i] - mini[i]) << ", " << log2((maxi[i] - mini[i]) / medianSpread) << std::endl;
 		}
 
@@ -81,19 +85,19 @@ public:
 			absTols.add(0);
 			relTols.add(0);
 		}
-		auto sense = ilp_.obj.getSense();
 		ilp_.model.remove(ilp_.obj);
 		ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
-										 prio, absTols, relTols), sense);
+										 prio, absTols, relTols), IloObjective::Minimize);
 		ilp_.model.add(ilp_.obj);
 		//std::cout << ilp_.obj << std::endl;
 
 		ilp_.cplex.extract(ilp_.model);
 	}
-    
+
     inline double operator()(const Point& weighting,
-                             Point& value);
-    
+                             Point& value,
+							 std::string &sol);
+
     inline ~ILPSolverAdaptor();
 
 private:
@@ -103,18 +107,18 @@ private:
 
 	double &time_;
 };
-    
+
 template<typename OnlineVertexEnumerator>
-class PilpDualBensonSolver : public AbstractSolver<std::list<std::string>> {
+class PilpDualBensonSolver : public AbstractSolver<std::string> {
 public:
     PilpDualBensonSolver(double epsilon = 1E-6)
     :   epsilon_(epsilon) {}
-    
+
     void Solve(ILP &ilp);
-    
+
 private:
     double epsilon_;
-    
+
 };
 
 // in: weigthing
@@ -123,7 +127,9 @@ private:
 // return: weighted sum of value
 inline double ILPSolverAdaptor::
 operator()(const Point& weighting,
-           Point& value) {
+           Point& value,
+		   std::string &sol)
+{
 	IloNumExprArray objs(ilp_.env);
 	IloNumArray weights(ilp_.env);
 	IloIntArray prio(ilp_.env);
@@ -166,37 +172,54 @@ operator()(const Point& weighting,
 	ilp_.cplex.solve();
 	time_ +=  (clock() - start) / double(CLOCKS_PER_SEC);
 
-	//TODO: test if bounded
+	//TODO: test if bounded (is this still current?)
 
 	for(int i = 0; i < ilp_.dimension; i++) {
 		value[i] = ilp_.cplex.getValue(objs[i], -1);
 	}
 
+	ilp_.cplex.writeSolution("asdfasfdasdf.sol");
+
+	sol = "solution:";
+	for(int i = 0; i < ilp_.dimension; i++) {
+		sol += " ";
+		sol += std::to_string(value[i]);
+	}
+	sol += "\nvariables:\n";
+	for(int i = 0; i < ilp_.vars.getSize(); i++) {
+		auto var = ilp_.vars[i];
+		sol += var.getName();
+		sol += " = ";
+		sol += std::to_string(ilp_.cplex.getValue(var));
+		sol += "\n";
+	}
+	//std::cout << sol << std::endl;
+
     return ilp_.cplex.getMultiObjInfo(IloCplex::MultiObjObjValue, 0);
 }
-    
+
 ILPSolverAdaptor::~ILPSolverAdaptor() {
     for(auto point : known_points_) {
         delete point;
     }
 }
- 
+
 template<typename OnlineVertexEnumerator>
 inline void PilpDualBensonSolver<OnlineVertexEnumerator>::
 Solve(ILP &ilp) {
-    
-    std::list<Point *> frontier;
+
+    std::list<std::pair<std::string, Point *>> frontier;
 	double solver_time = 0;
-    
-    DualBensonScalarizer<OnlineVertexEnumerator>
+
+    DualBensonScalarizer<OnlineVertexEnumerator, std::string>
     dual_benson_solver(ILPSolverAdaptor(ilp,solver_time),
                        ilp.dimension,
                        epsilon_);
-    
+
     dual_benson_solver.Calculate_solutions(frontier);
-    
-    std::list<std::pair<std::list<std::string>, Point>> solutions;
-    
+
+    std::list<std::pair<std::string, Point>> solutions;
+
 	//std::cout << "No of solutions:\n";
 	for(int i = 0; i < ilp.dimension; i++) {
 		std::cout << "0";
@@ -209,22 +232,23 @@ Solve(ILP &ilp) {
 		}
 		std::cout << std::endl;
 	}
-    for(auto point : frontier) {
+    for(auto sol : frontier) {
+		Point &point = *(sol.second);
 		Point pointScaled(ilp.dimension);
 		for(int i = 0; i < ilp.dimension; i++) {
-			pointScaled[i] = ((*point)[i] - ilp.offset[i]) / ilp.relScale[i];
+			pointScaled[i] = (point[i] / ilp.relScale[i]) - ilp.offset[i];
 		}
-        solutions.push_back(make_pair(std::list<std::string>(), pointScaled));
+        //solutions.push_back(make_pair(sol.first, pointScaled));
+		add_solution(sol.first, pointScaled);
 		std::cout << "1 " << pointScaled << std::endl;
     }
 	//std::cout << solutions.size() << std::endl;
-                            
-    add_solutions(solutions.begin(), solutions.end());
-    
+
+    //add_solutions(solutions.begin(), solutions.end());
+
 	//std::cout << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
 	//std::cout << "cplex time: " << solver_time << "\n";
 }
-    
 }
 
-#endif /* defined(__mco__pilp_dual_benson__) */
+#endif /* defined(__pamilo__pilp_dual_benson__) */

@@ -1,7 +1,7 @@
 //
-//  pilp.h 
-//  mco
-// 
+//  cplex.h
+//  pamilo
+//
 //  Add
 //
 //  Created by Mirko H. Wagner on 20.06.20
@@ -27,9 +27,11 @@ public:
 	std::vector<double> relScale;
 	std::vector<double> offset;
 
+	std::string filename;
+
 	int dimension;
 
-	ILP() : model(env), cplex(env), vars(env), cons(env), dimension(-1) {}
+	ILP() : model(env), cplex(env), vars(env), cons(env), dimension(-1), filename("pilpInstance") {}
 
 	~ILP() {
 		env.end();

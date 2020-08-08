@@ -16,10 +16,10 @@
 //#define GMPRATIONAL
 #include <cdd.h>
 
-#include <mco/basic/point.h>
-#include <mco/generic/benson_dual/abstract_online_vertex_enumerator.h>
+#include <pamilo/basic/point.h>
+#include <pamilo/generic/benson_dual/abstract_online_vertex_enumerator.h>
 
-namespace mco {
+namespace pamilo {
 
 class OnlineVertexEnumeratorCDD : AbstractOnlineVertexEnumerator {
 public:
@@ -50,5 +50,5 @@ protected:
 	dd_MatrixPtr h_representation_;
 };
 
-} /* namespace mco */
+} /* namespace pamilo */
 #endif /* ONLINE_VERTEX_ENUMERATOR_CDD_H_ */

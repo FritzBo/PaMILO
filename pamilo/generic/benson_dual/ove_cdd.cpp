@@ -5,7 +5,7 @@
  *      Author: fritz
  */
 
-#include <mco/generic/benson_dual/ove_cdd.h>
+#include <pamilo/generic/benson_dual/ove_cdd.h>
 
 #include <iostream>
 #include <cassert>
@@ -13,7 +13,7 @@
 
 using std::list;
 
-namespace mco {
+namespace pamilo {
 
 OnlineVertexEnumeratorCDD::OnlineVertexEnumeratorCDD(Point &initial_value, unsigned int dimension, double epsilon) :
 	AbstractOnlineVertexEnumerator(dimension, epsilon),
@@ -161,4 +161,4 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 	//std::cout << "ove: " << cycles_ << " \t " << cycles_ / (double) CLOCKS_PER_SEC << std::endl;
 }
 
-} /* namespace mco */
+} /* namespace pamilo */
