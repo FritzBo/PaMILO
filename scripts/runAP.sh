@@ -13,6 +13,6 @@ rm pamiloOut >> /dev/null 2>&1
 
 benOut="$2/$(basename $1)_ben"
 rm ${benOut}* >> /dev/null 2>&1
-/usr/bin/time -p $bensolve -Adual -adual $1.vlp -o $benOut >> /dev/null
+/usr/bin/time -p $bensolve $1.vlp -Adual -adual -o $benOut >> /dev/null
 
 python3 ../molp-algo/scripts/diffEps.py ${pamiloOut} ${benOut}_img_p.sol

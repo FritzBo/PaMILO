@@ -14,6 +14,6 @@ do
 	if [ "$RANDOM" -le 2000 ]
 	then
 		echo $file
-		./scripts/runAP.sh ../molp-algo/instances/fritzins/$file $dir
+		bash ./scripts/runAP.sh ../molp-algo/instances/fritzins/$file $dir
 	fi
 done
