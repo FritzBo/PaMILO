@@ -36,7 +36,7 @@ public:
 		for(int i = 0; i < dim; i++) {
 			weighting[i] = 0;
 			mini[i] = std::numeric_limits<double>::max();
-			maxi[i] = std::numeric_limits<double>::min();
+			maxi[i] = std::numeric_limits<double>::lowest();
 		}
 
 		for(int i = 0; i < dim; i++) {
@@ -55,17 +55,20 @@ public:
 			spread[i] = maxi[i] - mini[i];
 		}
 
+		auto sense = ilp_.obj.getSense();
+
 		std::nth_element(spread.begin(), spread.begin() + dim/2, spread.end());
 		double medianSpread = spread[dim/2];
 		for(int i = 0; i < dim; i++) {
-			double offset = 0; -maxi[i];
+			double offset = 0;// -maxi[i];
 			if(maxi[i] < 0) {
 				offset = -maxi[i];
 			} else if(mini[i] > 0) {
 				offset = -mini[i];
 			}
 			ilp_.offset[i] = offset;
-			ilp_.relScale[i] = exp2(round(log2((maxi[i] - mini[i]) / medianSpread)));
+			ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
+			ilp_.relScale[i] *= sense;
 			//std::cout << i << ", " << maxi[i] << " " << mini[i] << " spread: " << (maxi[i] - mini[i]) << ", " << log2((maxi[i] - mini[i]) / medianSpread) << std::endl;
 		}
 
@@ -82,10 +85,9 @@ public:
 			absTols.add(0);
 			relTols.add(0);
 		}
-		auto sense = ilp_.obj.getSense();
 		ilp_.model.remove(ilp_.obj);
 		ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
-										 prio, absTols, relTols), sense);
+										 prio, absTols, relTols), IloObjective::Minimize);
 		ilp_.model.add(ilp_.obj);
 		//std::cout << ilp_.obj << std::endl;
 
@@ -234,7 +236,7 @@ Solve(ILP &ilp) {
 		Point &point = *(sol.second);
 		Point pointScaled(ilp.dimension);
 		for(int i = 0; i < ilp.dimension; i++) {
-			pointScaled[i] = (point[i] - ilp.offset[i]) / ilp.relScale[i];
+			pointScaled[i] = (point[i] / ilp.relScale[i]) - ilp.offset[i];
 		}
         //solutions.push_back(make_pair(sol.first, pointScaled));
 		add_solution(sol.first, pointScaled);

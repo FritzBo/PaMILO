@@ -69,7 +69,6 @@ void PilpBensonModule::perform(int argc, char** argv) {
 		} else
 #endif
 		{
-//			std::cout << "graphless ove\n";
 			PilpDualBensonSolver<GraphlessOVE> solver(epsilon);
 			solver.Solve(ilp);
 

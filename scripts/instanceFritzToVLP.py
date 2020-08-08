@@ -3,10 +3,9 @@ import sys
 
 baseDir = os.path.dirname(os.path.realpath(__file__))
 
-inputFile = open(baseDir + "/" + sys.argv[1], "r+")
+inputFile = open(os.path.join(baseDir, sys.argv[1]), "r+")
 
-out = open(baseDir + "/" + sys.argv[1] + ".lp", "w+")
-
+out = open(os.path.join(baseDir, sys.argv[1]) + ".lp", "w+")
 
 # read number of items (of one partion)
 nItems = int(inputFile.readline())
@@ -35,12 +34,12 @@ for i in range(nItems):
     out.write(" = 1\n")
 
 curObj = 0
-lineNo = 0 
+lineNo = 0
 # read and write obj functions
 for line in inputFile.readlines():
     if(lineNo == 0):
         nObjectiveCoeffs = 0
-        out.write("-z" + str(curObj)) 
+        out.write("-z" + str(curObj))
     lineNo += 1
     line = line.split(" ")
     if(len(line) != nItems):

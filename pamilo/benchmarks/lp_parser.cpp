@@ -29,5 +29,7 @@ namespace pamilo {
 		ilp.offset.resize(ilp.dimension, 0);
 
 		ilp.cplex.extract(ilp.model);
+
+		ilp.filename = filename;
 	}
 }
