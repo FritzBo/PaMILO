@@ -178,21 +178,20 @@ operator()(const Point& weighting,
 		value[i] = ilp_.cplex.getValue(objs[i], -1);
 	}
 
-	ilp_.cplex.writeSolution("asdfasfdasdf.sol");
+//	ilp_.cplex.writeSolution("asdfasfdasdf.sol");
 
-	sol = "solution:";
-	for(int i = 0; i < ilp_.dimension; i++) {
-		sol += " ";
-		sol += std::to_string(value[i]);
-	}
-	sol += "\nvariables:\n";
 	for(int i = 0; i < ilp_.vars.getSize(); i++) {
 		auto var = ilp_.vars[i];
+		sol += " ";
 		sol += var.getName();
-		sol += " = ";
-		sol += std::to_string(ilp_.cplex.getValue(var));
-		sol += "\n";
+		sol += "=";
+		if(var.getType() != 2) {
+			sol += std::to_string(int(ilp_.cplex.getValue(var)));
+		} else {
+			sol += std::to_string(ilp_.cplex.getValue(var));
+		}
 	}
+	sol += "\n";
 	//std::cout << sol << std::endl;
 
     return ilp_.cplex.getMultiObjInfo(IloCplex::MultiObjObjValue, 0);
@@ -207,6 +206,7 @@ ILPSolverAdaptor::~ILPSolverAdaptor() {
 template<typename OnlineVertexEnumerator>
 inline void PilpDualBensonSolver<OnlineVertexEnumerator>::
 Solve(ILP &ilp) {
+	clock_t start = clock();
 
     std::list<std::pair<std::string, Point *>> frontier;
 	double solver_time = 0;
@@ -217,8 +217,6 @@ Solve(ILP &ilp) {
                        epsilon_);
 
     dual_benson_solver.Calculate_solutions(frontier);
-
-    std::list<std::pair<std::string, Point>> solutions;
 
 	//std::cout << "No of solutions:\n";
 	for(int i = 0; i < ilp.dimension; i++) {
@@ -232,22 +230,26 @@ Solve(ILP &ilp) {
 		}
 		std::cout << std::endl;
 	}
+
+	std::ofstream solFile;
+	solFile.open(ilp.filename + "_sol", std::ios::trunc | std::ios::out);
     for(auto sol : frontier) {
 		Point &point = *(sol.second);
 		Point pointScaled(ilp.dimension);
 		for(int i = 0; i < ilp.dimension; i++) {
 			pointScaled[i] = (point[i] / ilp.relScale[i]) - ilp.offset[i];
 		}
-        //solutions.push_back(make_pair(sol.first, pointScaled));
+		solFile << "[ " << pointScaled << " ]" << sol.first;
 		add_solution(sol.first, pointScaled);
 		std::cout << "1 " << pointScaled << std::endl;
     }
-	//std::cout << solutions.size() << std::endl;
+	solFile.close();
 
-    //add_solutions(solutions.begin(), solutions.end());
-
-	//std::cout << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
-	//std::cout << "cplex time: " << solver_time << "\n";
+	std::ofstream logFile;
+	logFile.open(ilp.filename + "_log", std::ios::trunc | std::ios::out);
+	logFile << "time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
+	logFile << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
+	logFile << "cplex time: " << solver_time << "\n";
 }
 }
 
