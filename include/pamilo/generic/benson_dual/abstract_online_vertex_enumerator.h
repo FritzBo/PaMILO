@@ -15,6 +15,7 @@
 #include <map>
 #include <queue>
 #include <list>
+#include <ctime>
 
 #include <pamilo/basic/point.h>
 

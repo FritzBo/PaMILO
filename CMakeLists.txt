@@ -7,8 +7,10 @@ list(INSERT CMAKE_MODULE_PATH 0 "${module_dir}" )
 
 enable_testing()
 
-set(CMAKE_CXX_FLAGS
-	"--std=c++17 -DIL_STD -Wno-ignored-attributes")
+if(UNIX)
+	set(CMAKE_CXX_FLAGS
+		"--std=c++17 -DIL_STD -Wno-ignored-attributes")
+endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 

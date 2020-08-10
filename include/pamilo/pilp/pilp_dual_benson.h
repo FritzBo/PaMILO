@@ -13,6 +13,8 @@
 #include <typeinfo>
 #include <set>
 #include <math.h>
+#include <algorithm>
+#include <limits>
 
 #include <pamilo/pilp/ilp.h>
 
