@@ -40,23 +40,33 @@ void PilpBensonModule::perform(int argc, char** argv) {
     try {
         CmdLine cmd("Dual Benson to find the Pareto-frontier of the parametric integer linear program problem.", ' ', "0.1");
 
+        ValueArg<string> output_name_argument("o", "output", "Basename of the output files. This defaults to <instance>.", false, "", "output");
+
         ValueArg<double> epsilon_argument("e", "epsilon", "Epsilon to be used in floating point calculations.", false, 1E-8, "epsilon");
 
-        UnlabeledValueArg<string> file_name_argument("filename", "Name of the instance file", true, "","filename");
+        UnlabeledValueArg<string> instance_name_argument("instance", "Name of the instance file.", true, "","instance");
 
+        cmd.add(output_name_argument);
         cmd.add(epsilon_argument);
-        cmd.add(file_name_argument);
+        cmd.add(instance_name_argument);
 
         cmd.parse(argc, argv);
 
-        string file_name = file_name_argument.getValue();
+        string instance_name = instance_name_argument.getValue();
         double epsilon = epsilon_argument.getValue();
+		string output_name = output_name_argument.getValue();
 
 		ILP ilp;
 
+		if(output_name == "") {
+			output_name == instance_name;
+		}
+		ilp.solFile.open(output_name + "_sol");
+		ilp.logFile.open(output_name + "_log");
+
 		LPparser parser;
 
-        parser.getILP(file_name, ilp);
+        parser.getILP(instance_name, ilp);
 
 #ifdef USE_CDD
 		if(ilp.dimension > 4) {
@@ -76,8 +86,8 @@ void PilpBensonModule::perform(int argc, char** argv) {
 							  solver.solutions().cbegin(),
 							  solver.solutions().cend());
 		}
-
-
+		ilp.solFile.close();
+		ilp.logFile.close();
     } catch(ArgException& e) {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
     }

@@ -145,13 +145,13 @@ operator()(const Point& weighting,
 	}
 
 	for(int i = 0; i < ilp_.dimension; i++) {
-		if(weighting[i] < 1E-06) {
+//		if(weighting[i] < 1E-06) {
 			objs.add(ilp_.obj.getCriterion(i));
 			weights.add(1);
 			prio.add(ilp_.dimension - i);
 			absTols.add(0);
 			relTols.add(0);
-		}
+//		}
 	}
 
 	//std::cout << "objs:\n" << objs << std::endl;
@@ -219,6 +219,7 @@ Solve(ILP &ilp) {
     dual_benson_solver.Calculate_solutions(frontier);
 
 	//std::cout << "No of solutions:\n";
+#ifdef TEST
 	for(int i = 0; i < ilp.dimension; i++) {
 		std::cout << "0";
 		for(int j = 0; j < ilp.dimension; j++) {
@@ -230,26 +231,25 @@ Solve(ILP &ilp) {
 		}
 		std::cout << std::endl;
 	}
+#endif
 
-	std::ofstream solFile;
-	solFile.open(ilp.filename + "_sol", std::ios::trunc | std::ios::out);
     for(auto sol : frontier) {
 		Point &point = *(sol.second);
 		Point pointScaled(ilp.dimension);
 		for(int i = 0; i < ilp.dimension; i++) {
 			pointScaled[i] = (point[i] / ilp.relScale[i]) - ilp.offset[i];
 		}
-		solFile << "[ " << pointScaled << " ]" << sol.first;
+		ilp.solFile << "[ " << pointScaled << " ]" << sol.first;
 		add_solution(sol.first, pointScaled);
-		std::cout << "1 " << pointScaled << std::endl;
+#ifdef TEST
+		std::cout << "1 ";
+#endif
+		std::cout << pointScaled << std::endl;
     }
-	solFile.close();
 
-	std::ofstream logFile;
-	logFile.open(ilp.filename + "_log", std::ios::trunc | std::ios::out);
-	logFile << "time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
-	logFile << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
-	logFile << "cplex time: " << solver_time << "\n";
+	ilp.logFile << "time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
+	ilp.logFile << "vertex enumeration time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
+	ilp.logFile << "cplex time: " << solver_time << "\n";
 }
 }
 
