@@ -42,7 +42,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
         ValueArg<string> output_name_argument("o", "output", "Basename of the output files. This defaults to <instance>.", false, "", "output");
 
-        ValueArg<double> epsilon_argument("e", "epsilon", "Epsilon to be used in floating point calculations.", false, 1E-8, "epsilon");
+        ValueArg<double> epsilon_argument("e", "epsilon", "Epsilon to be used in floating point calculations.", false, 1E-7, "epsilon");
 
         UnlabeledValueArg<string> instance_name_argument("instance", "Name of the instance file.", true, "","instance");
 

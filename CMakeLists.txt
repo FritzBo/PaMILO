@@ -2,17 +2,29 @@ cmake_minimum_required(VERSION 2.6)
 
 project(pamilo)
 
+# Set a default build type if none was specified
+set(default_build_type "Release")
+
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE
+      STRING "Choose the type of build." FORCE)
+  # Set the possible values of build type for cmake-gui
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
+    "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+
 set(module_dir "${PROJECT_SOURCE_DIR}/cmake")
 list(INSERT CMAKE_MODULE_PATH 0 "${module_dir}" )
 
 enable_testing()
 
+set(CMAKE_CXX_FLAGS "-DIL_STD")
 if(UNIX)
-	set(CMAKE_CXX_FLAGS
-		"--std=c++17 -DIL_STD -Wno-ignored-attributes")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -Wno-ignored-attributes")
+elseif(WIN32)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 endif()
-
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
 ## CPLEX
 find_path(CPLEX
@@ -21,16 +33,31 @@ find_path(CPLEX
 		/usr/local/
 		~/.local/
 		~/opt/local
-		/opt/ibm/ILOG/CPLEX_Studio128
 		/opt/ibm/ILOG/CPLEX_Studio129
 		/opt/ibm/ILOG/CPLEX_Studio1210
+		"C:/Program Files/IBM/ILOG/CPLEX_Studio_Community1210"
+		"C:/Program Files/IBM/ILOG/CPLEX_Studio1210"
+		"C:/Program Files/IBM/ILOG/CPLEX_Studio129"
 )
 
-find_path(CPLEX_INCLUDE_DIR ilcplex/cplex.h PATHS ${CPLEX}/cplex/include)
-find_path(CONCERT_INCLUDE_DIR ilconcert/iloenv.h PATHS ${CPLEX}/concert/include)
-find_library(ILOCPLEX_LIB libilocplex.a PATHS ${CPLEX}/cplex/lib/x86-64_linux/static_pic)
-find_library(CONCERT_LIB libconcert.a PATHS ${CPLEX}/concert/lib/x86-64_linux/static_pic)
-find_library(CPLEX_LIB libcplex.a PATHS ${CPLEX}/cplex/lib/x86-64_linux/static_picu)
+find_path(CPLEX_INCLUDE_DIR ilcplex/cplex.h
+	PATHS ${CPLEX}/cplex/include
+)
+find_path(CONCERT_INCLUDE_DIR ilconcert/iloenv.h
+	PATHS ${CPLEX}/concert/include
+)
+find_library(ILOCPLEX_LIB libilocplex.a
+	PATHS ${CPLEX}/cplex/lib/x86-64_linux/static_pic
+		${CPLEX}/cplex/lib/x64_windows_msvc14/stat_mda
+)
+find_library(CONCERT_LIB libconcert.a
+	PATHS ${CPLEX}/concert/lib/x86-64_linux/static_pic
+		${CPLEX}/concert/lib/x64_windows_msvc14/stat_mda
+)
+find_library(CPLEX_LIB libcplex.a
+	PATHS ${CPLEX}/cplex/lib/x86-64_linux/static_pic
+		${CPLEX}/cplex/lib/x64_windows_msvc14/stat_mda
+)
 
 ## CDD ##
 option(USE_CDD "Whether to use cdd for vertex enumeration" OFF)

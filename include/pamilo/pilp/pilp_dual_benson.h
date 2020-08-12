@@ -138,8 +138,10 @@ operator()(const Point& weighting,
 	IloNumArray absTols(ilp_.env);
 	IloNumArray relTols(ilp_.env);
 
+	auto sense = ilp_.obj.getSense();
+
 	for(int i = 0; i < ilp_.dimension; i ++) {
-		objs.add(ilp_.obj.getCriterion(i));
+		objs.add(ilp_.obj.getCriterion(i) * sense);
 		weights.add(weighting[i]);
 		prio.add(ilp_.dimension + 1);
 		absTols.add(0);
@@ -147,13 +149,13 @@ operator()(const Point& weighting,
 	}
 
 	for(int i = 0; i < ilp_.dimension; i++) {
-//		if(weighting[i] < 1E-06) {
-			objs.add(ilp_.obj.getCriterion(i));
+		if(weighting[i] < 1E-06) {
+			objs.add(ilp_.obj.getCriterion(i) * sense);
 			weights.add(1);
 			prio.add(ilp_.dimension - i);
 			absTols.add(0);
 			relTols.add(0);
-//		}
+		}
 	}
 
 	//std::cout << "objs:\n" << objs << std::endl;
@@ -162,10 +164,9 @@ operator()(const Point& weighting,
 	//std::cout << "absTols:\n" << absTols << std::endl;
 	//std::cout << "relTols:\n" << relTols << std::endl;
 
-	auto sense = ilp_.obj.getSense();
 	ilp_.model.remove(ilp_.obj);
 	ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
-									 prio, absTols, relTols), sense);
+									 prio, absTols, relTols), IloObjective::Minimize);
 	ilp_.model.add(ilp_.obj);
 	//std::cout << ilp_.obj << std::endl;
 
