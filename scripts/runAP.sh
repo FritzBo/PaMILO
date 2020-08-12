@@ -9,7 +9,7 @@ bensolve="bensolve"
 
 pamiloOut="$2/$(basename $1)_pamilo"
 rm pamiloOut >> /dev/null 2>&1
-/usr/bin/time -p ./cli/pamilo_cli $1.lp > $pamiloOut
+/usr/bin/time -p ./pamilo_cli $1.lp -o $pamiloOut > $pamiloOut
 
 benOut="$2/$(basename $1)_ben"
 rm ${benOut}* >> /dev/null 2>&1

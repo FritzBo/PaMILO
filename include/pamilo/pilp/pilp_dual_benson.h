@@ -222,6 +222,7 @@ Solve(ILP &ilp) {
     dual_benson_solver.Calculate_solutions(frontier);
 
 	//std::cout << "No of solutions:\n";
+#define TEST
 #ifdef TEST
 	for(int i = 0; i < ilp.dimension; i++) {
 		std::cout << "0";
