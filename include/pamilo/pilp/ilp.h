@@ -28,6 +28,8 @@ public:
 	std::vector<double> offset;
 
 	std::string filename;
+	std::ofstream solFile;
+	std::ofstream logFile;
 
 	int dimension;
 

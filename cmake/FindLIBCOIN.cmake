@@ -1,5 +1,0 @@
-find_path(LIBCOIN_INCLUDE_DIR coin/OsiSolverInterface.hpp)
-find_library(LIBCOIN_LIBRARY libOsiCpx)
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(LIBCOIN DEFAULT_MSG LIBCOIN_LIBRARY LIBCOIN_INCLUDE_DIR)
-mark_as_advanced(LIBCOIN_INCLUDE_DIR LIBCOIN_LIBRARY)

@@ -13,6 +13,8 @@
 #include <typeinfo>
 #include <set>
 #include <math.h>
+#include <algorithm>
+#include <limits>
 
 #include <pamilo/pilp/ilp.h>
 
@@ -136,8 +138,10 @@ operator()(const Point& weighting,
 	IloNumArray absTols(ilp_.env);
 	IloNumArray relTols(ilp_.env);
 
+	auto sense = ilp_.obj.getSense();
+
 	for(int i = 0; i < ilp_.dimension; i ++) {
-		objs.add(ilp_.obj.getCriterion(i));
+		objs.add(ilp_.obj.getCriterion(i) * sense);
 		weights.add(weighting[i]);
 		prio.add(ilp_.dimension + 1);
 		absTols.add(0);
@@ -146,7 +150,7 @@ operator()(const Point& weighting,
 
 	for(int i = 0; i < ilp_.dimension; i++) {
 		if(weighting[i] < 1E-06) {
-			objs.add(ilp_.obj.getCriterion(i));
+			objs.add(ilp_.obj.getCriterion(i) * sense);
 			weights.add(1);
 			prio.add(ilp_.dimension - i);
 			absTols.add(0);
@@ -160,10 +164,9 @@ operator()(const Point& weighting,
 	//std::cout << "absTols:\n" << absTols << std::endl;
 	//std::cout << "relTols:\n" << relTols << std::endl;
 
-	auto sense = ilp_.obj.getSense();
 	ilp_.model.remove(ilp_.obj);
 	ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
-									 prio, absTols, relTols), sense);
+									 prio, absTols, relTols), IloObjective::Minimize);
 	ilp_.model.add(ilp_.obj);
 	//std::cout << ilp_.obj << std::endl;
 
@@ -219,6 +222,7 @@ Solve(ILP &ilp) {
     dual_benson_solver.Calculate_solutions(frontier);
 
 	//std::cout << "No of solutions:\n";
+#ifdef TEST
 	for(int i = 0; i < ilp.dimension; i++) {
 		std::cout << "0";
 		for(int j = 0; j < ilp.dimension; j++) {
@@ -230,26 +234,25 @@ Solve(ILP &ilp) {
 		}
 		std::cout << std::endl;
 	}
+#endif
 
-	std::ofstream solFile;
-	solFile.open(ilp.filename + "_sol", std::ios::trunc | std::ios::out);
     for(auto sol : frontier) {
 		Point &point = *(sol.second);
 		Point pointScaled(ilp.dimension);
 		for(int i = 0; i < ilp.dimension; i++) {
 			pointScaled[i] = (point[i] / ilp.relScale[i]) - ilp.offset[i];
 		}
-		solFile << "[ " << pointScaled << " ]" << sol.first;
+		ilp.solFile << "[ " << pointScaled << " ]" << sol.first;
 		add_solution(sol.first, pointScaled);
-		std::cout << "1 " << pointScaled << std::endl;
+#ifdef TEST
+		std::cout << "1 ";
+#endif
+		std::cout << pointScaled << std::endl;
     }
-	solFile.close();
 
-	std::ofstream logFile;
-	logFile.open(ilp.filename + "_log", std::ios::trunc | std::ios::out);
-	logFile << "time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
-	logFile << "ve time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
-	logFile << "cplex time: " << solver_time << "\n";
+	ilp.logFile << "time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
+	ilp.logFile << "vertex enumeration time: " << dual_benson_solver.vertex_enumeration_time() << "\n";
+	ilp.logFile << "cplex time: " << solver_time << "\n";
 }
 }
 

@@ -15,7 +15,7 @@ for line in inputFile.readlines():
             if "z" in word:
                 out.write(" obj" + str(i) + ":\r\n  z" + str(i) + "\r\n")
                 i += 1
-    elif "imize" in line:
+    elif "imize" in line or "min" in line or "max" in line:
         out.write(line[:-1] + " multi-objectives\r\n")
     else:
         out.write(line[:-1] + "\r\n")
