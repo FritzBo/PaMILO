@@ -25,6 +25,7 @@ nCols1 = len(origIn1.columns)
 origIn1 = pandas.read_csv(sys.argv[1], sep=' ', dtype="float64", names=["type"] + ["dim"+str(i) for i in range(nCols1-1)]);
 #origIn1 = origIn1.to_numpy()
 origIn1 = origIn1.round(0)
+origIn1 = origIn1.drop_duplicates()
 #origIn1 = origIn1[np.lexsort(np.rot90(origIn1))]
 #
 #row_mask_next = np.append([True], np.any(np.diff(origIn1,axis=0),1))
@@ -38,6 +39,7 @@ nCols2 = len(origIn2.columns)
 origIn2 = pandas.read_csv(sys.argv[2], sep=' ', dtype="float64", names=["type"] + ["dim"+str(i) for i in range(nCols2-1)]);
 #origIn2 = origIn2.to_numpy()
 origIn2 = origIn2.round(0)
+origIn2 = origIn2.drop_duplicates()
 #origIn2 = origIn2[np.lexsort(np.rot90(origIn2))]
 #
 #row_mask_next = np.append([True], np.any(np.diff(origIn2,axis=0),1))
