@@ -83,7 +83,6 @@ public:
 	friend std::ostream & operator<<(std::ostream &, const Point &);
     friend void swap(Point& p1, Point& p2);
 
-
 private:
     unsigned int dimension_ = 0;
     double * values_ = nullptr;
@@ -142,7 +141,6 @@ inline Point& Point::operator=(Point&& that) noexcept {
     swap(*this, that);
     return *this;
 }
-
 
 inline Point & Point::operator+=(const Point &p) noexcept {
     assert(dimension_ == p.dimension_);
@@ -253,8 +251,5 @@ inline void swap(Point& p1, Point& p2) {
 #include "equality_point_comparator.h"
 #include "componentwise_point_comparator.h"
 #include "pareto_point_comparator.h"
+}
 
-} // namespace pamilo
-
-
-#endif /* POINT_H_ */

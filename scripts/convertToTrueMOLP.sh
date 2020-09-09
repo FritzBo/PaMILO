@@ -31,3 +31,4 @@ while IFS= read -r line; do
 		echo "$line" >> $2
 	fi
 done < $1
+

@@ -79,8 +79,5 @@ normalize_projective(Point& projective_point) {
 
     projective_point[dimension - 1] = 1;
 }
-
 }
 
-
-#endif /* defined(__pamilo__projective_geometry_utilities__) */

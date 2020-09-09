@@ -29,7 +29,5 @@ public:
     void getILP(std::string filename,
                   ILP &ilp);
 };
-
 }
 
-#endif /* defined(__pamilo__lp_parser__) */

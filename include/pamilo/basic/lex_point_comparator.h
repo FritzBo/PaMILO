@@ -144,4 +144,3 @@ operator()(const Point* p1,
     return operator()(*p1, *p2);
 }
 
-#endif

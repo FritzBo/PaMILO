@@ -38,4 +38,3 @@ private:
 
 };
 
-#endif /* defined(__pamilo__pilp_benson_module__) */

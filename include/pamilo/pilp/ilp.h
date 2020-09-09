@@ -38,12 +38,16 @@ public:
 	std::string filename;
 	std::ofstream solFile;
 	std::ofstream logFile;
+	std::ofstream cplexFile;
+
+	int startTime;
 
 	int dimension;
 
-	ILP() : model(env), cplex(env), vars(env), cons(env), dimension(-1), filename("pilpInstance") {}
+	ILP() : model(env), cplex(env), vars(env), cons(env), dimension(-1), filename("pilpInstance"), solFile(""), logFile(""), cplexFile(""), startTime(-1) {}
 
 	~ILP() {
 		env.end();
 	}
 };
+

@@ -82,7 +82,6 @@ is_le(const Point &p1,
     return true;
 }
 
-
 inline bool ComponentwisePointComparator::
 is_leq(const Point &p1,
        const Point &p2,
@@ -101,4 +100,3 @@ is_leq(const Point &p1,
     return true;
 }
 
-#endif

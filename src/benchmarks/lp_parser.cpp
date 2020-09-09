@@ -29,9 +29,9 @@ using namespace std;
 namespace pamilo {
 	void LPparser::getILP(string filename, ILP &ilp) {
 		ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
-		ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 0);
+		ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
 		ilp.cplex.setParam(IloCplex::Param::ParamDisplay, 0);
-		ilp.cplex.setOut(ilp.env.getNullStream());
+		ilp.cplex.setOut(ilp.cplexFile);
 
 		ilp.dimension = ilp.obj.getNumCriteria();
 
@@ -43,3 +43,4 @@ namespace pamilo {
 		ilp.filename = filename;
 	}
 }
+

@@ -24,9 +24,10 @@ fileList=$(ls ../molp-algo/instances/fritzins | grep "ap_3_[4-8][0-9]*_[0-9]*$\|
 for file in $fileList
 do
 	#echo $file
-	if [ "$RANDOM" -le 2000 ]
+	if [ "$RANDOM" -le 200 ]
 	then
 		echo $file
 		./scripts/runAP.sh ../molp-algo/instances/fritzins/$file $dir
-	fi	
+	fi
 done
+

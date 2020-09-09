@@ -22,6 +22,7 @@
 #include <vector>
 #include <algorithm>
 #include <set>
+#include <iterator>
 
 #include <pamilo/generic/benson_dual/abstract_online_vertex_enumerator.h>
 #include <pamilo/geometric/projective_geometry_utilities.h>
@@ -221,7 +222,5 @@ set_father(GraphlessPoint* father) {
     father_point_ = father;
     father->children_.push_back(this);
 }
-
 }
 
-#endif /* defined(__pamilo__ove_fp_v2__) */

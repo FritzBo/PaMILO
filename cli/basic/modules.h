@@ -58,4 +58,3 @@ public:
 private:
     std::map<std::string, BasicModule*> modules_;
 };
-#endif /* defined(__pamilo__modules__) */

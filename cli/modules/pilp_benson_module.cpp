@@ -62,17 +62,18 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
         cmd.parse(argc, argv);
 
+		ILP ilp;
+
         string instance_name = instance_name_argument.getValue();
         double epsilon = epsilon_argument.getValue();
 		string output_name = output_name_argument.getValue();
-
-		ILP ilp;
 
 		if(output_name == "") {
 			output_name == instance_name;
 		}
 		ilp.solFile.open(output_name + "_sol");
 		ilp.logFile.open(output_name + "_log");
+		ilp.cplexFile.open(output_name + "_cplex");
 
 		LPparser parser;
 
@@ -98,6 +99,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 		}
 		ilp.solFile.close();
 		ilp.logFile.close();
+		ilp.cplexFile.close();
     } catch(ArgException& e) {
         std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
     }
@@ -111,3 +113,4 @@ string PilpBensonModule::statistics() {
     string stats("");
     return stats;
 }
+

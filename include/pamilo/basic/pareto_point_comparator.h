@@ -63,7 +63,6 @@ dominates(const Point &p1,
     bool equal = true;
 
     for(unsigned int i = 0; i < dimension; i++) {
-
         if(p1[i] - p2[i] > epsilon) {
             return false;
         }
@@ -72,9 +71,6 @@ dominates(const Point &p1,
             equal = false;
         }
     }
-
     return !equal;
 }
 
-
-#endif

@@ -42,8 +42,10 @@ public:
 	}
 
 	double get_time() {
-//		std::cout << "End cycles: " << cycles_ << std::endl;
-//		std::cout << "Time: " << (cycles_/(double) CLOCKS_PER_SEC) << std::endl;
+#ifdef NDEBUG
+		std::cout << "End cycles: " << cycles_ << std::endl;
+		std::cout << "Time: " << (cycles_/(double) CLOCKS_PER_SEC) << std::endl;
+#endif
 		return cycles_/(double) CLOCKS_PER_SEC;
 	}
 
@@ -56,6 +58,5 @@ protected:
 
 	dd_MatrixPtr h_representation_;
 };
+}
 
-} /* namespace pamilo */
-#endif /* ONLINE_VERTEX_ENUMERATOR_CDD_H_ */

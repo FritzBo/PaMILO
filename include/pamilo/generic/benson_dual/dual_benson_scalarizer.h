@@ -48,8 +48,15 @@ public:
 		vertex_container(nullptr),
 		vertices_(0),
 		facets_(0),
-		ve_time(0)
+		ve_time(0),
+		quit(false)
 	{ }
+
+	~DualBensonScalarizer() {
+		if(vertex_container) {
+			delete vertex_container;
+		}
+	}
 
 	void Calculate_solutions(std::list<std::pair<SolType,Point *>>& solutions);
 
@@ -76,9 +83,9 @@ private:
 template<typename OnlineVertexEnumerator, typename SolType>
 void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::
 Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
-    int nondominated_values = 1;
+    vertices_ = 1;
     int iteration_counter = 0;
-    int weighting_counter = 1;
+    facets_ = 1;
 
     Point v(dimension_);
     Point value(dimension_);
@@ -93,6 +100,9 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 	solutions.push_back(std::make_pair(sol, new Point(value)));
 
 	clock_t start = clock();
+	if(vertex_container) {
+		delete vertex_container;
+	}
 	vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
 	delete vertex_container->next_vertex();
 	ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
@@ -136,10 +146,9 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 #endif
 
         if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_) {
-            weighting_counter++;
+			facets_++;
 #ifndef NDEBUG
             std::cout << "found a new permanent extreme point. continuing." << std::endl;
-
 #endif
         } else {
             for(unsigned int i = 0; i < dimension_ - 1; ++i)
@@ -149,7 +158,7 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 			clock_t start = clock();
             vertex_container->add_hyperplane(*candidate, inequality, -value[dimension_ - 1]);
 			ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
-            nondominated_values++;
+			vertices_++;
 
             solutions.push_back(std::make_pair(sol, new Point(value)));
         }
@@ -157,13 +166,10 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
         delete candidate;
     }
 
-    vertices_ = nondominated_values;
-    facets_ = weighting_counter;
-
-    //	std::cout << "Found " << nondominated_values << " nondominated value vectors in " << iteration_counter << " iterations." << std::endl;
-    //	std::cout << "Where " << weighting_counter << " weightings have been explored." << std::endl;
-
-    delete vertex_container;
+#ifndef NDEBUG
+		std::cout << "Found " << facets_ << " nondominated value vectors in " << iteration_counter << " iterations." << std::endl;
+		std::cout << "Where " << vertices_ << " weightings have been explored." << std::endl;
+#endif
 }
 
 template<typename OnlineVertexEnumerator, typename SolType>
@@ -171,6 +177,5 @@ double DualBensonScalarizer<OnlineVertexEnumerator, SolType>::
 vertex_enumeration_time() {
     return ve_time;
 }
+}
 
-} /* namespace pamilo */
-#endif /* DUAL_BENSON_SCALARIZER_H_ */

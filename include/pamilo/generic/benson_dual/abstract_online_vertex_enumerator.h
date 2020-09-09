@@ -49,7 +49,5 @@ protected:
 
 	clock_t cycles_;
 };
+}
 
-} /* namespace pamilo */
-
-#endif /* ABSTRACT_VERTEX_ENUMERATOR_H_ */

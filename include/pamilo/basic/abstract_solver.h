@@ -61,9 +61,6 @@ protected:
 private:
 
 	std::list<std::pair<csolution_type, const Point>> solutions_;
-
 };
-
 }
 
-#endif /* ABSTRACT_SOLVER_H_ */

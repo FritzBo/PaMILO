@@ -475,5 +475,5 @@ add_cut_point(const GraphlessPoint& outside_point,
 
     return cut_point;
 }
-
 }
+

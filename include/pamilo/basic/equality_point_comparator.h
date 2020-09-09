@@ -72,4 +72,3 @@ is_equal(const Point& p1,
 	return true;
 }
 
-#endif
