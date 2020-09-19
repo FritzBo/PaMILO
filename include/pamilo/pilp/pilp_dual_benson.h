@@ -4,14 +4,8 @@
 //
 //  Created by Fritz Bökler and Mirko H. Wagner on 28.05.20.
 //
-//  This file is distributed under the terms of
-//
-//  the GNU General Public License v3,
-//  a copy of which can be found in the file LICENCE-GPLv3.txt
-//
-//  OR
-//
-//  for academics, a MIT license based license,
+//  This file is distributed for academics only
+//  under the terms of an MIT license based license,
 //  a copy of which can be found in the file LICENSE-academic.txt.
 //
 //
@@ -163,7 +157,7 @@ operator()(const Point& weighting,
 	for(int i = 0; i < ilp_.dimension; i ++) {
 		objs.add(ilp_.obj.getCriterion(i) * sense);
 		weights.add(weighting[i]);
-		prio.add(ilp_.dimension + 1);
+		prio.add(2);
 		absTols.add(0);
 		relTols.add(0);
 	}
@@ -172,7 +166,7 @@ operator()(const Point& weighting,
 		if(weighting[i] < 1E-06) {
 			objs.add(ilp_.obj.getCriterion(i) * sense);
 			weights.add(1);
-			prio.add(ilp_.dimension - i);
+			prio.add(1);
 			absTols.add(0);
 			relTols.add(0);
 		}
