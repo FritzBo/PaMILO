@@ -1,4 +1,17 @@
 #!/bin/sh
+#
+#  Author: Mirko H. Wagner 2020
+#  This file is distributed under the terms of
+#
+#  the GNU General Public License v3,
+#  a copy of which can be found in the file LICENCE-GPLv3.txt
+#
+#  OR
+#
+#  for academics, a MIT license based license,
+#  a copy of which can be found in the file LICENSE-academic.txt.
+#
+
 rm $2 2> /dev/null
 touch $2
 while IFS= read -r line; do

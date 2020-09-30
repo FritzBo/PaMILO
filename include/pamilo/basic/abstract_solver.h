@@ -1,13 +1,21 @@
-#pragma once
-/*
- * abstract_solver.h
- *
- *  Created on: 25.03.2013
- *      Author: fritz
- */
+//
+//  abstract_solver.h
+//
+//  Created on: 25.03.2013
+//      Author: Fritz Bökler
+//
+//  This file is distributed under the terms of
+//
+//  the GNU General Public License v3,
+//  a copy of which can be found in the file LICENCE-GPLv3.txt
+//
+//  OR
+//
+//  for academics, a MIT license based license,
+//  a copy of which can be found in the file LICENSE-academic.txt.
+//
 
-#ifndef ABSTRACT_SOLVER_H_
-#define ABSTRACT_SOLVER_H_
+#pragma once
 
 #include <list>
 #include <iterator>

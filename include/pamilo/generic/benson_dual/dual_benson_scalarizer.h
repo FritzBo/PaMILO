@@ -1,13 +1,22 @@
-#pragma once
-/*
- * dual_benson_scalarizer.h
- *
- *  Created on: 27.09.2013
- *      Author: fritz
- */
+//
+//  dual_benson_scalarizer.h
+//
+//  Created on: 27.09.2013
+//      Author: Fritz Bökler
+//
+//  This file is distributed under the terms of
+//
+//  the GNU General Public License v3,
+//  a copy of which can be found in the file LICENCE-GPLv3.txt
+//
+//  OR
+//
+//  for academics, a MIT license based license,
+//  a copy of which can be found in the file LICENSE-academic.txt.
+//
+//
 
-#ifndef DUAL_BENSON_SCALARIZER_H_
-#define DUAL_BENSON_SCALARIZER_H_
+#pragma once
 
 #include <list>
 #include <functional>
