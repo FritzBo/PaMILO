@@ -4,14 +4,8 @@
 //
 //  Created by Fritz Bökler on 31.03.14.
 //
-//  This file is distributed under the terms of
-//
-//  the GNU General Public License v3,
-//  a copy of which can be found in the file LICENCE-GPLv3.txt
-//
-//  OR
-//
-//  for academics, a MIT license based license,
+//  This file is distributed for academics only
+//  under the terms of an MIT license based license,
 //  a copy of which can be found in the file LICENSE-academic.txt.
 //
 //
@@ -72,4 +66,3 @@ is_equal(const Point& p1,
 	return true;
 }
 
-#endif

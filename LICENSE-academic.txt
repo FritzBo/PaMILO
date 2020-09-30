@@ -2,9 +2,9 @@ Copyright (c) 2020 Fritz Bökler, Mirko H. Wagner
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
-in an ACADEMICAL context in the Software, including the rights to use, copy,
+in the Software in an ACADEMICAL CONTEXT ONLY, including the rights to use, copy,
 modify, merge, publish, distribute, and/or sublicense copies of the Software
-FOR ACADEMIC PURPOSES, and to permit persons to whom the Software is furnished
+FOR ACADEMIC PURPOSES ONLY, and to permit persons to whom the Software is furnished
 to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all

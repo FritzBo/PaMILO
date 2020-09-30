@@ -4,14 +4,8 @@
 //  Created on: 27.09.2013
 //      Author: Fritz Bökler
 //
-//  This file is distributed under the terms of
-//
-//  the GNU General Public License v3,
-//  a copy of which can be found in the file LICENCE-GPLv3.txt
-//
-//  OR
-//
-//  for academics, a MIT license based license,
+//  This file is distributed for academics only
+//  under the terms of an MIT license based license,
 //  a copy of which can be found in the file LICENSE-academic.txt.
 //
 //
@@ -40,16 +34,24 @@ class DualBensonScalarizer {
 public:
 	DualBensonScalarizer(
 			std::function<double(const Point& weighting, Point& value, SolType &sol)> solver,
+			std::function<void(std::pair<SolType, Point*>)> printSol,
 			unsigned int dimension,
         	double epsilon)
     :   dimension_(dimension),
 		epsilon_(epsilon),
 		solver_(solver),
+		printSol_(printSol),
 		vertex_container(nullptr),
 		vertices_(0),
 		facets_(0),
 		ve_time(0)
 	{ }
+
+	~DualBensonScalarizer() {
+		if(vertex_container) {
+			delete vertex_container;
+		}
+	}
 
 	void Calculate_solutions(std::list<std::pair<SolType,Point *>>& solutions);
 
@@ -63,6 +65,7 @@ protected:
 	double epsilon_;
 
 	std::function<double(const Point&, Point&, SolType &sol)> solver_;
+	std::function<void(std::pair<SolType, Point*>)> printSol_;
 
 private:
 	OnlineVertexEnumerator *vertex_container;
@@ -76,9 +79,9 @@ private:
 template<typename OnlineVertexEnumerator, typename SolType>
 void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::
 Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
-    int nondominated_values = 1;
+    vertices_ = 1;
     int iteration_counter = 0;
-    int weighting_counter = 1;
+    facets_ = 1;
 
     Point v(dimension_);
     Point value(dimension_);
@@ -89,10 +92,14 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 
 	SolType sol;
 	v[dimension_ - 1] = solver_(v, value, sol);
-
-	solutions.push_back(std::make_pair(sol, new Point(value)));
+	auto solPair = std::make_pair(sol, new Point(value));
+	solutions.push_back(solPair);
+	printSol_(solPair);
 
 	clock_t start = clock();
+	if(vertex_container) {
+		delete vertex_container;
+	}
 	vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
 	delete vertex_container->next_vertex();
 	ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
@@ -136,10 +143,9 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 #endif
 
         if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_) {
-            weighting_counter++;
+			facets_++;
 #ifndef NDEBUG
             std::cout << "found a new permanent extreme point. continuing." << std::endl;
-
 #endif
         } else {
             for(unsigned int i = 0; i < dimension_ - 1; ++i)
@@ -149,21 +155,20 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 			clock_t start = clock();
             vertex_container->add_hyperplane(*candidate, inequality, -value[dimension_ - 1]);
 			ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
-            nondominated_values++;
+			vertices_++;
 
-            solutions.push_back(std::make_pair(sol, new Point(value)));
+			auto solPair = std::make_pair(sol, new Point(value));
+			solutions.push_back(solPair);
+			printSol_(solPair);
         }
 
         delete candidate;
     }
 
-    vertices_ = nondominated_values;
-    facets_ = weighting_counter;
-
-    //	std::cout << "Found " << nondominated_values << " nondominated value vectors in " << iteration_counter << " iterations." << std::endl;
-    //	std::cout << "Where " << weighting_counter << " weightings have been explored." << std::endl;
-
-    delete vertex_container;
+#ifndef NDEBUG
+		std::cout << "Found " << facets_ << " nondominated value vectors in " << iteration_counter << " iterations." << std::endl;
+		std::cout << "Where " << vertices_ << " weightings have been explored." << std::endl;
+#endif
 }
 
 template<typename OnlineVertexEnumerator, typename SolType>
@@ -171,6 +176,5 @@ double DualBensonScalarizer<OnlineVertexEnumerator, SolType>::
 vertex_enumeration_time() {
     return ve_time;
 }
+}
 
-} /* namespace pamilo */
-#endif /* DUAL_BENSON_SCALARIZER_H_ */

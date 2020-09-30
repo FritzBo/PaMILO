@@ -4,14 +4,8 @@
 //  Created on: 30.09.2013
 //      Author: Fritz Bökler
 //
-//  This file is distributed under the terms of
-//
-//  the GNU General Public License v3,
-//  a copy of which can be found in the file LICENCE-GPLv3.txt
-//
-//  OR
-//
-//  for academics, a MIT license based license,
+//  This file is distributed for academics only
+//  under the terms of an MIT license based license,
 //  a copy of which can be found in the file LICENSE-academic.txt.
 //
 
@@ -63,11 +57,6 @@ OnlineVertexEnumeratorCDD::OnlineVertexEnumeratorCDD(Point &initial_value, unsig
 	dd_set_d(h_representation_->matrix[dimension_][0], initial_value[dimension_ - 1]);
 
 	h_representation_->representation = dd_Inequality;
-
-//	dd_WriteMatrix(stdout, h_representation_);
-//
-//	for(Point &p : unprocessed_vertices_)
-//		std::cout << p << std::endl;
 }
 
 OnlineVertexEnumeratorCDD::~OnlineVertexEnumeratorCDD() {
@@ -93,12 +82,6 @@ Point * OnlineVertexEnumeratorCDD::next_vertex() {
 
 void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, double rhs) {
 	clock_t start = clock();
-//	std::cout << start << std::endl;
-
-//	std::cout << "begin" << std::endl;
-
-//	std::cout << "normal: " << normal << std::endl;
-//	std::cout << "rhs: " << rhs << std::endl;
 
 	number_hyperplanes_++;
 
@@ -118,32 +101,21 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 	set_addelem(new_face->linset, new_face->rowsize);
 	new_face->representation = dd_Inequality;
 
-//	dd_WriteMatrix(stdout, new_face);
-
 	poly = dd_DDMatrix2Poly(new_face, &err);
 
 	if(err != dd_NoError) {
 		dd_WriteErrorMessages(stdout, err);
-		//assert(false);
-        //exit(-1);
 	}
 
 	v_representation = dd_CopyGenerators(poly);
 
-//	dd_WriteMatrix(stdout, v_representation);
-
-//	std::cout << "removing..." << std::endl;
-
 	auto it = unprocessed_vertices_.begin();
 	while(it != unprocessed_vertices_.end()) {
 		if(*it * normal - rhs < epsilon_) {
-//			std::cout << "Removed " << *it << std::endl;
 			it = unprocessed_vertices_.erase(it);
 		} else
 			it++;
 	}
-
-//	std::cout << "adding.." << std::endl;
 
 	for(int i = 0; i < v_representation->rowsize; ++i) {
 		if(dd_get_d(v_representation->matrix[i][0]) != 1)
@@ -154,8 +126,6 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 			p[j] = dd_get_d(v_representation->matrix[i][j + 1]);
 
 		unprocessed_vertices_.push_back(p);
-
-//		std::cout << "Added " << p << std::endl;
 	}
 
 	dd_FreeMatrix(v_representation);
@@ -163,12 +133,7 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 	dd_FreeMatrix(new_equality);
 	dd_FreePolyhedra(poly);
 
-//	std::cout << "end" << std::endl;
-//	std::cout << clock() << std::endl;
-//	std::cout << clock() - start << std::endl;
-
 	cycles_ += clock() - start;
-	//std::cout << "ove: " << cycles_ << " \t " << cycles_ / (double) CLOCKS_PER_SEC << std::endl;
+}
 }
 
-} /* namespace pamilo */

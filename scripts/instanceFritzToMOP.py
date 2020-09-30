@@ -12,7 +12,7 @@ baseDir = os.path.dirname(os.path.realpath(__file__))
 
 inputFile = open(os.path.join(baseDir, sys.argv[1]), "r+")
 
-out = open(os.path.join(baseDir, sys.argv[1]) + ".lp", "w+")
+out = open(os.path.join(baseDir, sys.argv[1]) + ".mop", "w+")
 
 # read number of items (of one partion)
 nItems = int(inputFile.readline())
@@ -22,58 +22,51 @@ nObjFunc = int(inputFile.readline())
 
 # write program line (information line)
 #TODO: check whether min or max
-out.write("Minimize multi-objectives\n")
+out.write("NAME ASSIGNMENT\nOBJSENSE\n MAX\nROWS\n")
 for i in range(nObjFunc):
-    out.write("  obj"+str(i)+":\n   z"+str(i)+"\n")
-out.write("\nSubject To\n");
+    out.write(" N obj"+str(i)+"\n")
 
 # write constraints (each item is used exactly once)
 for i in range(nItems):
-    out.write("x" + str(i*nItems+nObjFunc))
-    for j in range(1,nItems):
-        out.write(" + x" + str(i*nItems+j+nObjFunc))
-    out.write(" = 1\n")
+    out.write(" "+'{0: <5}'.format(" E cLeft#" + str(i) + "\n")
+    out.write(" E cRight#" + str(i) + "\n")
 
+out.write("COLUMNS\n")
 for i in range(nItems):
-    out.write("x" + str(i+nObjFunc))
-    for j in range(1,nItems):
-        out.write(" + x" + str(j*nItems+i+nObjFunc))
-    out.write(" = 1\n")
+    for j in range(nItems):
+        out.write("    x#"+str(i)+"#"+str(j)+"    cLeft#"+str(i)+"    1\n")
+        out.write("    x#"+str(i)+"#"+str(j)+"    cRight#"+str(j)+"    1\n")
 
-curObj = 0
-lineNo = 0
 # read and write obj functions
+lineNo = 0
+curObj = 0
 for line in inputFile.readlines():
     if(lineNo == 0):
         nObjectiveCoeffs = 0
-        out.write("-z" + str(curObj))
     lineNo += 1
     line = line.split(" ")
     if(len(line) != nItems):
         print("wrong line size! " + len(line) + " but should be " + nItems + " !\nline is: " + line)
+
+    noInLine=0
     for coef in line:
-        index = nObjectiveCoeffs %(nItems*nItems)
-        index += nObjFunc
+        out.write("    x#"+str(noInLine)+"#"+str(lineNo)+"    obj#"+str(curObj)+"    "+str(int(coef))+"\n")
+        noInLine += 1
 
-        out.write(" + " + str(int(coef)) + " x" + str(index))
-
-        nObjectiveCoeffs += 1
     if(lineNo == nItems):
         lineNo = 0
-        out.write(" = 0\n")
         curObj += 1
 
-out.write("Bounds\n")
-for i in range(nObjFunc):
-    out.write("z" + str(i) + " Free\n")
+out.write("RHS\n")
+for i in range(nItems):
+    out.write("    RHS       cLeft#"+str(i)+"    1\n")
+    out.write("    RHS       cRight#"+str(i)+"    1\n")
 
-out.write("Binaries\n")
+out.write("BOUNDS\n")
 for i in range(nItems):
     for j in range(nItems):
-        out.write("x" + str(i*nItems+j+nObjFunc) + " ")
-    out.write("\n")
-
-out.write("End\n")
+        out.write(" BV    BOUND    x#"+str(i)+"#"+str(j)+"\n")
+out.write("ENDATA\n")
 
 out.close()
 inputFile.close()

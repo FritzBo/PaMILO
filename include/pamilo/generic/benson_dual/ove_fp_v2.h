@@ -4,14 +4,8 @@
 //
 //  Created by Fritz Bökler on 08.04.14.
 //
-//  This file is distributed under the terms of
-//
-//  the GNU General Public License v3,
-//  a copy of which can be found in the file LICENCE-GPLv3.txt
-//
-//  OR
-//
-//  for academics, a MIT license based license,
+//  This file is distributed for academics only
+//  under the terms of an MIT license based license,
 //  a copy of which can be found in the file LICENSE-academic.txt.
 //
 //
@@ -22,6 +16,7 @@
 #include <vector>
 #include <algorithm>
 #include <set>
+#include <iterator>
 
 #include <pamilo/generic/benson_dual/abstract_online_vertex_enumerator.h>
 #include <pamilo/geometric/projective_geometry_utilities.h>
@@ -221,7 +216,5 @@ set_father(GraphlessPoint* father) {
     father_point_ = father;
     father->children_.push_back(this);
 }
-
 }
 
-#endif /* defined(__pamilo__ove_fp_v2__) */

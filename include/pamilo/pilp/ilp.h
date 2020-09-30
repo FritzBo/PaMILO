@@ -4,14 +4,8 @@
 //
 //  Created by Mirko H. Wagner on 20.06.20
 //
-//  This file is distributed under the terms of
-//
-//  the GNU General Public License v3,
-//  a copy of which can be found in the file LICENCE-GPLv3.txt
-//
-//  OR
-//
-//  for academics, a MIT license based license,
+//  This file is distributed for academics only
+//  under the terms of an MIT license based license,
 //  a copy of which can be found in the file LICENSE-academic.txt.
 //
 //
@@ -38,12 +32,29 @@ public:
 	std::string filename;
 	std::ofstream solFile;
 	std::ofstream logFile;
+	std::ofstream cplexFile;
+	bool noPreprocessing;
+
+	int startTime;
 
 	int dimension;
 
-	ILP() : model(env), cplex(env), vars(env), cons(env), dimension(-1), filename("pilpInstance") {}
+	ILP() :
+		model(env),
+		cplex(env),
+		vars(env),
+		cons(env),
+		dimension(-1),
+		filename("pilpInstance"),
+		solFile(""),
+		logFile(""),
+		cplexFile(""),
+		noPreprocessing(false),
+		startTime(-1)
+	{}
 
 	~ILP() {
 		env.end();
 	}
 };
+

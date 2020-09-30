@@ -4,14 +4,8 @@
 //  Created on: 30.09.2013
 //      Author: fritz
 //
-//  This file is distributed under the terms of
-//
-//  the GNU General Public License v3,
-//  a copy of which can be found in the file LICENCE-GPLv3.txt
-//
-//  OR
-//
-//  for academics, a MIT license based license,
+//  This file is distributed for academics only
+//  under the terms of an MIT license based license,
 //  a copy of which can be found in the file LICENSE-academic.txt.
 //
 
@@ -42,8 +36,10 @@ public:
 	}
 
 	double get_time() {
-//		std::cout << "End cycles: " << cycles_ << std::endl;
-//		std::cout << "Time: " << (cycles_/(double) CLOCKS_PER_SEC) << std::endl;
+#ifdef NDEBUG
+		std::cout << "End cycles: " << cycles_ << std::endl;
+		std::cout << "Time: " << (cycles_/(double) CLOCKS_PER_SEC) << std::endl;
+#endif
 		return cycles_/(double) CLOCKS_PER_SEC;
 	}
 
@@ -56,6 +52,5 @@ protected:
 
 	dd_MatrixPtr h_representation_;
 };
+}
 
-} /* namespace pamilo */
-#endif /* ONLINE_VERTEX_ENUMERATOR_CDD_H_ */
