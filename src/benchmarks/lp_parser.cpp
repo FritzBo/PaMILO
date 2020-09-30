@@ -22,7 +22,12 @@ using namespace std;
 
 namespace pamilo {
 	void LPparser::getILP(string filename, ILP &ilp) {
-		ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
+		try {
+			ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
+		} catch(IloException &e) {
+			cerr << "CPLEX failed to read the file. This is likely, because the input file is corrupted or is not a MOMIP\n";
+			exit(-1);
+		}
 		ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
 		ilp.cplex.setParam(IloCplex::Param::ParamDisplay, 0);
 		ilp.cplex.setOut(ilp.cplexFile);

@@ -34,16 +34,17 @@ class DualBensonScalarizer {
 public:
 	DualBensonScalarizer(
 			std::function<double(const Point& weighting, Point& value, SolType &sol)> solver,
+			std::function<void(std::pair<SolType, Point*>)> printSol,
 			unsigned int dimension,
         	double epsilon)
     :   dimension_(dimension),
 		epsilon_(epsilon),
 		solver_(solver),
+		printSol_(printSol),
 		vertex_container(nullptr),
 		vertices_(0),
 		facets_(0),
-		ve_time(0),
-		quit(false)
+		ve_time(0)
 	{ }
 
 	~DualBensonScalarizer() {
@@ -64,6 +65,7 @@ protected:
 	double epsilon_;
 
 	std::function<double(const Point&, Point&, SolType &sol)> solver_;
+	std::function<void(std::pair<SolType, Point*>)> printSol_;
 
 private:
 	OnlineVertexEnumerator *vertex_container;
@@ -90,8 +92,9 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 
 	SolType sol;
 	v[dimension_ - 1] = solver_(v, value, sol);
-
-	solutions.push_back(std::make_pair(sol, new Point(value)));
+	auto solPair = std::make_pair(sol, new Point(value));
+	solutions.push_back(solPair);
+	printSol_(solPair);
 
 	clock_t start = clock();
 	if(vertex_container) {
@@ -154,7 +157,9 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 			ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
 			vertices_++;
 
-            solutions.push_back(std::make_pair(sol, new Point(value)));
+			auto solPair = std::make_pair(sol, new Point(value));
+			solutions.push_back(solPair);
+			printSol_(solPair);
         }
 
         delete candidate;

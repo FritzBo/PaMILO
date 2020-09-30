@@ -32,10 +32,34 @@ struct Log {
 	int nSolves = 0;
 };
 
+class ILPSolverPrinter {
+public:
+	ILPSolverPrinter(ILP &ilp) : ilp_(ilp) {}
+    inline void operator()(std::pair<std::string, Point*>);
+
+private:
+	ILP &ilp_;
+};
+
+void ILPSolverPrinter::operator()(std::pair<std::string, Point*> sol) {
+	Point &point = *(sol.second);
+	Point pointScaled(ilp_.dimension);
+	for(int i = 0; i < ilp_.dimension; i++) {
+		pointScaled[i] = (point[i] / ilp_.relScale[i]) - ilp_.offset[i];
+	}
+	ilp_.solFile << "[ " << pointScaled << " ]" << sol.first;
+#ifdef TEST
+	std::cout << "1 ";
+#endif
+	std::cout << pointScaled << std::endl;
+}
+
 class ILPSolverAdaptor {
 public:
-    ILPSolverAdaptor(ILP &ilp, Log& log, bool preprocessScale = true) : ilp_(ilp), log_(log) {
-		if(!preprocessScale) {
+    ILPSolverAdaptor(ILP &ilp, Log& log)
+		: ilp_(ilp), log_(log)
+	{
+		if(ilp.noPreprocessing) {
 			ilp.logFile << "preprocessing time: 0\n";
 			return;
 		}
@@ -180,17 +204,6 @@ operator()(const Point& weighting,
 	ilp_.cplex.extract(ilp_.model);
 	bool doRun = true;
 	clock_t start = clock();
-	if(ilp_.timeLimit != -1) {
-		double remainingTime = ilp_.timeLimit - ((start - ilp_.startTime) / double(CLOCKS_PER_SEC));
-		if(remainingTime > 0) {
-			ilp_.cplex.setParam(IloCplex::Param::TimeLimit, remainingTime);
-		} else {
-			doRun = false;
-		}
-	}
-	if(!doRun) {
-		return -1;
-	}
 
 	ilp_.cplex.solve();
 	log_.solver_time +=  (clock() - start) / double(CLOCKS_PER_SEC);
@@ -235,6 +248,7 @@ Solve(ILP &ilp) {
 
     DualBensonScalarizer<OnlineVertexEnumerator, std::string>
     dual_benson_solver(ILPSolverAdaptor(ilp, log),
+                       ILPSolverPrinter(ilp),
                        ilp.dimension,
                        epsilon_);
 
@@ -261,12 +275,8 @@ Solve(ILP &ilp) {
 		for(int i = 0; i < ilp.dimension; i++) {
 			pointScaled[i] = (point[i] / ilp.relScale[i]) - ilp.offset[i];
 		}
-		ilp.solFile << "[ " << pointScaled << " ]" << sol.first;
+		delete sol.second;
 		add_solution(sol.first, pointScaled);
-#ifdef TEST
-		std::cout << "1 ";
-#endif
-		std::cout << pointScaled << std::endl;
     }
 
 	ilp.logFile << "time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
