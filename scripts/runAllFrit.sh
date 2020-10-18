@@ -6,23 +6,32 @@
 #  a copy of which can be found in the file LICENSE-academic.txt.
 #
 
+instancedir=../molp-algo/instances/fritzins
+
 make -j16
 
-dir="results/"$(date +%m_%d_%Y_%H_%M_%S)
+dir=$(date +%Y-%m-%d_%H-%M-%S)
+resDir="results/$dir"
 mkdir -p "results"
-mkdir $dir
+mkdir $resDir
+touch $resDir/configsRun
+cd results && zip $dir.zip $dir/configsRun && cd ..
 
 ulimit -v 12388608
-fileList=$(ls ../../fritsolve/molp-algo/instances/fritzins | grep "ap_3_[4-8][0-9]*_[0-9]*$\|ap_4_[1-4][0-9]_[0-9]*$\|ap_5_[1-2][0-9]_[0-9]*$\|ap_6_[0-9]_[0-9]*$\|ap_6_1[0-2]_[0-9]*$")
+fileList=$(ls $instancedir | grep "ap_3_[4-8][0-9]*_[0-9]*$\|ap_4_[1-4][0-9]_[0-9]*$\|ap_5_[1-2][0-9]_[0-9]*$\|ap_6_[0-9]_[0-9]*$\|ap_6_1[0-2]_[0-9]*$")
 
 for file in $fileList
 do
 	#echo $file
-	if [ "$RANDOM" -le 200 ]
+	if [ "$RANDOM" -le 50000 ]
 	then
 		echo $file
-		bash ./scripts/runAP.sh ../molp-algo/instances/fritzins/$file $dir
-		bash ./scripts/runPolyScip.sh ../molp-algo/instances/fritzins/$file.lp $dir
+		echo $file >> $resDir/configsRun
+		bash ./scripts/runAP.sh $instancedir/$file $resDir
+		cd results && zip -rv $dir.zip $dir/$file* && cd ..
+		rm $resDir/$file*
 	fi
 done
 
+cd results && zip -rv $dir.zip $dir/configsRun && cd ..
+rm -rf $resDir

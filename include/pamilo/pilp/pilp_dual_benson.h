@@ -123,7 +123,8 @@ public:
 			weights.add(1);
 			prio.add(0);
 			absTols.add(0);
-			relTols.add(2); }
+			relTols.add(0);
+		}
 		ilp_.model.remove(ilp_.obj);
 		ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
 										 prio, absTols, relTols), IloObjective::Minimize);

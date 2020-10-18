@@ -30,6 +30,7 @@ namespace pamilo {
 		}
 		ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
 		ilp.cplex.setParam(IloCplex::Param::ParamDisplay, 0);
+		ilp.cplex.setParam(IloCplex::Param::Threads, 1);
 		ilp.cplex.setOut(ilp.cplexFile);
 
 		ilp.dimension = ilp.obj.getNumCriteria();
