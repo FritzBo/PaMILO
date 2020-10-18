@@ -56,8 +56,8 @@ void ILPSolverPrinter::operator()(std::pair<std::string, Point*> sol) {
 
 class ILPSolverAdaptor {
 public:
-    ILPSolverAdaptor(ILP &ilp, Log& log)
-		: ilp_(ilp), log_(log)
+    ILPSolverAdaptor(ILP &ilp, Log& log, double eps)
+		: ilp_(ilp), log_(log), eps_(eps)
 	{
 		if(ilp.noPreprocessing) {
 			ilp.logFile << "preprocessing time: 0\n";
@@ -142,9 +142,11 @@ public:
 private:
 	ILP &ilp_;
 
-    std::set<Point*, LexPointComparator> known_points_;
-
 	Log &log_;
+
+	double eps_;
+
+    std::set<Point*, LexPointComparator> known_points_;
 };
 
 template<typename OnlineVertexEnumerator>
@@ -217,13 +219,21 @@ operator()(const Point& weighting,
 
 	for(int i = 0; i < ilp_.vars.getSize(); i++) {
 		auto var = ilp_.vars[i];
-		sol += " ";
-		sol += var.getName();
-		sol += "=";
-		if(var.getType() != 2) {
-			sol += std::to_string(int(ilp_.cplex.getValue(var)));
-		} else {
-			sol += std::to_string(ilp_.cplex.getValue(var));
+		float val = ilp_.cplex.getValue(var);
+		if(val > eps_
+				|| val < - eps_)
+		{
+			sol += " ";
+			sol += var.getName();
+			sol += "=";
+			if(var.getType() != 2
+					|| ( val + eps_ > int(val + eps_)
+						&& val - eps_ < int(val + eps_)))
+			{
+				sol += std::to_string(int(val));
+			} else {
+				sol += std::to_string(val);
+			}
 		}
 	}
 	sol += "\n";
@@ -247,7 +257,7 @@ Solve(ILP &ilp) {
 	Log log;
 
     DualBensonScalarizer<OnlineVertexEnumerator, std::string>
-    dual_benson_solver(ILPSolverAdaptor(ilp, log),
+    dual_benson_solver(ILPSolverAdaptor(ilp, log, epsilon_),
                        ILPSolverPrinter(ilp),
                        ilp.dimension,
                        epsilon_);
