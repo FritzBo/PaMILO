@@ -127,8 +127,12 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
         }
         weighting[dimension_ - 1] = 1 - sum;
 
-        for(unsigned int i = 0; i < dimension_; ++i)
+        for(unsigned int i = 0; i < dimension_; ++i) {
 			value[i] = 0;
+			if(weighting[i] < epsilon_) {
+				weighting[i] = 0;
+			}
+		}
 
 #ifndef NDEBUG
         std::cout << "weighting: " << weighting << std::endl;

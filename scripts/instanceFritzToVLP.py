@@ -67,11 +67,11 @@ out.write("Bounds\n")
 for i in range(nObjFunc):
     out.write("z" + str(i) + " Free\n")
 
-out.write("Binaries\n")
-for i in range(nItems):
-    for j in range(nItems):
-        out.write("x" + str(i*nItems+j+nObjFunc) + " ")
-    out.write("\n")
+#out.write("Binaries\n")
+#for i in range(nItems):
+#    for j in range(nItems):
+#        out.write("x" + str(i*nItems+j+nObjFunc) + " ")
+#    out.write("\n")
 
 out.write("End\n")
 

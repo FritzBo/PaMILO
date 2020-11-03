@@ -17,9 +17,13 @@ $cplex -c "read $1.lp" "write $1.mps" > /dev/null
 #make -j16
 mkdir -p $2
 
-pamiloOut="$2/$(basename $1)_pamilo"
-rm pamiloOut >> /dev/null 2>&1
-/usr/bin/time -p ./pamilo_cli $1.lp -o ${pamiloOut} > ${pamiloOut} 2> ${pamiloOut}_time
+pamiloOutCDD="$2/$(basename $1)_pamilo_cdd"
+rm $pamiloOutCDD >> /dev/null 2>&1
+/usr/bin/time -p ./pamilo_cli -E cdd $1.lp -o ${pamiloOutCDD} > ${pamiloOutCDD} 2> ${pamiloOutCDD}_time
+
+pamiloOutGL="$2/$(basename $1)_pamilo_graphless"
+rm $pamiloOutGL >> /dev/null 2>&1
+/usr/bin/time -p ./pamilo_cli -E graphless $1.lp -o ${pamiloOutGL} > ${pamiloOutGL} 2> ${pamiloOutGL}_time
 
 benOutPrimal="$2/$(basename $1)_ben_primal"
 rm ${benOutPrimal}* >> /dev/null 2>&1

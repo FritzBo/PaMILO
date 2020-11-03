@@ -53,10 +53,13 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
 		SwitchArg no_preprocessing_argument("", "no-pre", "Don't run preprocessing. Only use this, if you know all objectives are in rougly the same range and either the lowest or the highest value in each objective is close to 0.", false);
 
+		ValueArg<string> ve_argument("E", "vertex-enumeration", "Which vertex enumeration algorithm is to be used. Options are: cdd, graphless, and auto (default)", false, "auto", "vertex-enumeration");
+
         cmd.add(output_name_argument);
         cmd.add(epsilon_argument);
         cmd.add(instance_name_argument);
         cmd.add(no_preprocessing_argument);
+		cmd.add(ve_argument);
 
         cmd.parse(argc, argv);
 
@@ -66,6 +69,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
         double epsilon = epsilon_argument.getValue();
 		string output_name = output_name_argument.getValue();
 		bool no_preprocessing = no_preprocessing_argument.getValue();
+		string ve = ve_argument.getValue();
 
 		if(output_name == "") {
 			output_name == instance_name;
@@ -81,7 +85,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 			parser.getILP(instance_name, ilp);
 
 #ifdef USE_CDD
-			if(ilp.dimension > 4) {
+			if(ve == "cdd" || (ilp.dimension > 4 && ve == "auto")) {
 				PilpDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon);
 				solver.Solve(ilp);
 
@@ -91,6 +95,10 @@ void PilpBensonModule::perform(int argc, char** argv) {
 			} else
 #endif
 			{
+				if(ve == "cdd") {
+					std::cerr << "cdd is not activated in cmake!\n";
+					exit(0);
+				}
 				PilpDualBensonSolver<GraphlessOVE> solver(epsilon);
 				solver.Solve(ilp);
 
