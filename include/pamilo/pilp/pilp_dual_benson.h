@@ -209,10 +209,62 @@ operator()(const Point& weighting,
 	clock_t start = clock();
 
 	ilp_.cplex.solve();
-	log_.solver_time +=  (clock() - start) / double(CLOCKS_PER_SEC);
-	log_.nSolves++;
 
 	//TODO: test if bounded (is this still current?)
+
+	auto solveStatus = ilp_.cplex.getStatus();
+
+	if(solveStatus == IloAlgorithm::Status::InfeasibleOrUnbounded
+			|| solveStatus == IloAlgorithm::Status::Unbounded)
+	{
+		IloModel unbModel = IloGetClone(ilp_.env, ilp_.model);
+		//unbModel.add(newMod);
+		IloCplex unbCplex(ilp_.env);
+		std::cout << std::endl << std::endl << solveStatus << std::endl;
+		IloNumExpr soloObjFunc(ilp_.env);
+		IloNumExprArray unbObjs(ilp_.env);
+
+		// make problem relaxed
+		unbModel.add(IloConversion(ilp_.env, ilp_.vars, ILOFLOAT));
+
+		unbCplex.extract(unbModel);
+		IloObjective obj = unbCplex.getObjective();
+
+		for(int i = 0; i < ilp_.dimension; i ++) {
+			soloObjFunc += (obj.getCriterion(i) * sense * weighting[i]);
+			unbObjs.add(obj.getCriterion(i) * sense);
+		}
+
+		unbModel.remove(obj);
+		unbModel.add(IloMinimize(ilp_.env, soloObjFunc));
+		std::cout << "c\n";
+		unbCplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
+		unbCplex.setParam(IloCplex::Param::ParamDisplay, 0);
+		unbCplex.setParam(IloCplex::Param::Threads, 1);
+		unbCplex.setParam(IloCplex::Param::Preprocessing::Reduce, 0);
+		unbCplex.setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
+		unbCplex.setParam(IloCplex::Param::RootAlgorithm, IloCplex::Primal);
+		unbCplex.extract(unbModel);
+		std::cout << unbModel << " is mip? " << unbCplex.isMIP() << /*ilp_.model <<*/ " b\n";
+		for(int i = 0; i < ilp_.vars.getSize(); i++) {
+			std::cout << ilp_.vars[i] << " has type " << ilp_.vars[i].getType() << "\n";
+		}
+		std::cout << "solo obj: " << unbCplex.getObjective() << unbCplex.solve() << std::endl;
+		solveStatus = unbCplex.getStatus();
+		std::cout << "unbounded\n";
+		IloNumArray vals(ilp_.env);
+		IloNumVarArray vars(ilp_.env);
+		for(int i = 0; i < ilp_.dimension; i++) {
+			std::cout << objs[1] << std::endl;
+			value[i] = unbCplex.getValue(objs[i], -1);
+		}
+		std::cout << value << " here\n";
+		unbCplex.getRay(vals, vars);
+		std::cout << solveStatus << " ray: " << vals << vars << std::endl;
+	}
+
+	log_.solver_time +=  (clock() - start) / double(CLOCKS_PER_SEC);
+	log_.nSolves++;
 
 	for(int i = 0; i < ilp_.dimension; i++) {
 		value[i] = ilp_.cplex.getValue(objs[i], -1);
