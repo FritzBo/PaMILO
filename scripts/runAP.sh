@@ -5,7 +5,7 @@
 #  under the terms of an MIT license based license,
 #  a copy of which can be found in the file LICENSE-academic.txt.
 #
-bensolve="bensolve"
+bensolve=~/bensolve-2.1.0/bensolve
 cplex=~/cplex12_10/cplex/bin/x86-64_linux/cplex
 polyscip=~/Downloads/scipoptsuite-6.0.2/build/bin/applications/polyscip
 
