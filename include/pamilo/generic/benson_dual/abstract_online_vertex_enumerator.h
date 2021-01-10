@@ -37,7 +37,6 @@ public:
 	}
 
     virtual inline bool has_next() = 0;
-	virtual inline void print_ex_points() = 0;
 
     virtual inline Point * next_vertex() = 0;
 
