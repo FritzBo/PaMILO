@@ -103,10 +103,13 @@ public:
 
 		std::nth_element(spread.begin(), spread.begin() + (dim+zeroCnt)/2, spread.end());
 		double medianSpread = spread[(dim+zeroCnt)/2];
+		if(zeroCnt == dim) {
+			medianSpread = 0;
+		}
 		for(int i = 0; i < dim; i++) {
-			double offset = (maxi[i] < 0 ? -maxi[i] : -mini[i]);
+			double offset = (sense == 1 ? -maxi[i] : -mini[i]);
 			ilp_.offset[i] = offset;
-			if(maxi[i] - mini[i] > 0 || medianSpread == 0) {
+			if(maxi[i] - mini[i] > 0 && medianSpread != 0) {
 				ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
 			}
 			ilp_.relScale[i] *= sense;
@@ -131,7 +134,8 @@ public:
 		ilp_.model.add(ilp_.obj);
 
 		ilp_.cplex.extract(ilp_.model);
-		ilp.logFile << "preprocessing time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
+		ilp_.logFile << "preprocessed objectives: " << ilp_.obj << std::endl;
+		ilp_.logFile << "preprocessing time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
 	}
 
     inline double operator()(const Point& weighting,
@@ -147,13 +151,13 @@ private:
 
 	double eps_;
 
-    std::set<Point*, LexPointComparator> known_points_;
+// removable?    std::set<Point*, LexPointComparator> known_points_;
 };
 
 template<typename OnlineVertexEnumerator>
 class PilpDualBensonSolver : public AbstractSolver<std::string> {
 public:
-    PilpDualBensonSolver(double epsilon = 1E-6)
+    PilpDualBensonSolver(double epsilon = 1E-7)
     :   epsilon_(epsilon) {}
 
     void Solve(ILP &ilp);
@@ -190,7 +194,7 @@ operator()(const Point& weighting,
 	}
 
 	for(int i = 0; i < ilp_.dimension; i++) {
-		if(weighting[i] < 1E-06) {
+		if(weighting[i] < eps_) {
 			objs.add(ilp_.obj.getCriterion(i) * sense);
 			weights.add(1);
 			prio.add(1);
@@ -210,57 +214,58 @@ operator()(const Point& weighting,
 
 	ilp_.cplex.solve();
 
-	//TODO: test if bounded (is this still current?)
-
 	auto solveStatus = ilp_.cplex.getStatus();
 
 	if(solveStatus == IloAlgorithm::Status::InfeasibleOrUnbounded
 			|| solveStatus == IloAlgorithm::Status::Unbounded)
 	{
-		IloModel unbModel = IloGetClone(ilp_.env, ilp_.model);
-		//unbModel.add(newMod);
-		IloCplex unbCplex(ilp_.env);
-		std::cout << std::endl << std::endl << solveStatus << std::endl;
-		IloNumExpr soloObjFunc(ilp_.env);
-		IloNumExprArray unbObjs(ilp_.env);
-
-		// make problem relaxed
-		unbModel.add(IloConversion(ilp_.env, ilp_.vars, ILOFLOAT));
-
-		unbCplex.extract(unbModel);
-		IloObjective obj = unbCplex.getObjective();
-
-		for(int i = 0; i < ilp_.dimension; i ++) {
-			soloObjFunc += (obj.getCriterion(i) * sense * weighting[i]);
-			unbObjs.add(obj.getCriterion(i) * sense);
-		}
-
-		unbModel.remove(obj);
-		unbModel.add(IloMinimize(ilp_.env, soloObjFunc));
-		std::cout << "c\n";
-		unbCplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
-		unbCplex.setParam(IloCplex::Param::ParamDisplay, 0);
-		unbCplex.setParam(IloCplex::Param::Threads, 1);
-		unbCplex.setParam(IloCplex::Param::Preprocessing::Reduce, 0);
-		unbCplex.setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
-		unbCplex.setParam(IloCplex::Param::RootAlgorithm, IloCplex::Primal);
-		unbCplex.extract(unbModel);
-		std::cout << unbModel << " is mip? " << unbCplex.isMIP() << /*ilp_.model <<*/ " b\n";
-		for(int i = 0; i < ilp_.vars.getSize(); i++) {
-			std::cout << ilp_.vars[i] << " has type " << ilp_.vars[i].getType() << "\n";
-		}
-		std::cout << "solo obj: " << unbCplex.getObjective() << unbCplex.solve() << std::endl;
-		solveStatus = unbCplex.getStatus();
-		std::cout << "unbounded\n";
-		IloNumArray vals(ilp_.env);
-		IloNumVarArray vars(ilp_.env);
-		for(int i = 0; i < ilp_.dimension; i++) {
-			std::cout << objs[1] << std::endl;
-			value[i] = unbCplex.getValue(objs[i], -1);
-		}
-		std::cout << value << " here\n";
-		unbCplex.getRay(vals, vars);
-		std::cout << solveStatus << " ray: " << vals << vars << std::endl;
+		ilp_.logFile << "Problem is unbounded\n";
+		std::cerr << "Problem is unbounded\n";
+		exit(0);
+//		IloModel unbModel = IloGetClone(ilp_.env, ilp_.model);
+//		//unbModel.add(newMod);
+//		IloCplex unbCplex(ilp_.env);
+//		std::cout << std::endl << std::endl << solveStatus << std::endl;
+//		IloNumExpr soloObjFunc(ilp_.env);
+//		IloNumExprArray unbObjs(ilp_.env);
+//
+//		// make problem relaxed
+//		unbModel.add(IloConversion(ilp_.env, ilp_.vars, ILOFLOAT));
+//
+//		unbCplex.extract(unbModel);
+//		IloObjective obj = unbCplex.getObjective();
+//
+//		for(int i = 0; i < ilp_.dimension; i ++) {
+//			soloObjFunc += (obj.getCriterion(i) * sense * weighting[i]);
+//			unbObjs.add(obj.getCriterion(i) * sense);
+//		}
+//
+//		unbModel.remove(obj);
+//		unbModel.add(IloMinimize(ilp_.env, soloObjFunc));
+//		std::cout << "c\n";
+//		unbCplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
+//		unbCplex.setParam(IloCplex::Param::ParamDisplay, 0);
+//		unbCplex.setParam(IloCplex::Param::Threads, 1);
+//		unbCplex.setParam(IloCplex::Param::Preprocessing::Reduce, 0);
+//		unbCplex.setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
+//		unbCplex.setParam(IloCplex::Param::RootAlgorithm, IloCplex::Primal);
+//		unbCplex.extract(unbModel);
+//		std::cout << unbModel << " is mip? " << unbCplex.isMIP() << /*ilp_.model <<*/ " b\n";
+//		for(int i = 0; i < ilp_.vars.getSize(); i++) {
+//			std::cout << ilp_.vars[i] << " has type " << ilp_.vars[i].getType() << "\n";
+//		}
+//		std::cout << "solo obj: " << unbCplex.getObjective() << unbCplex.solve() << std::endl;
+//		solveStatus = unbCplex.getStatus();
+//		std::cout << "unbounded\n";
+//		IloNumArray vals(ilp_.env);
+//		IloNumVarArray vars(ilp_.env);
+//		for(int i = 0; i < ilp_.dimension; i++) {
+//			std::cout << objs[1] << std::endl;
+//			value[i] = unbCplex.getValue(objs[i], -1);
+//		}
+//		std::cout << value << " here\n";
+//		unbCplex.getRay(vals, vars);
+//		std::cout << solveStatus << " ray: " << vals << vars << std::endl;
 	}
 
 	log_.solver_time +=  (clock() - start) / double(CLOCKS_PER_SEC);
@@ -295,9 +300,9 @@ operator()(const Point& weighting,
 }
 
 ILPSolverAdaptor::~ILPSolverAdaptor() {
-    for(auto point : known_points_) {
-        delete point;
-    }
+// removable?    for(auto point : known_points_) {
+// removable?        delete point;
+// removable?    }
 }
 
 template<typename OnlineVertexEnumerator>
@@ -347,6 +352,7 @@ Solve(ILP &ilp) {
 	ilp.logFile << "cplex time: " << log.solver_time << "\n";
 	ilp.logFile << "cplex solves: " << log.nSolves << "\n";
 	ilp.logFile << "time per solve: " << log.solver_time/log.nSolves << "\n";
+	ilp.logFile << "times old and new differed: " << dual_benson_solver.oldWouldntButNewWould << "\n";
 }
 }
 

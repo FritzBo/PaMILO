@@ -36,6 +36,17 @@ public:
 		cycles_(0) {
 	}
 
+    virtual inline bool has_next() = 0;
+	virtual inline void print_ex_points() = 0;
+
+    virtual inline Point * next_vertex() = 0;
+
+    virtual void add_hyperplane(Point &vertex, Point &normal, double rhs) = 0;
+
+    virtual unsigned int number_of_hyperplanes() = 0;
+
+	virtual double getDistance(Point &vertex, Point &normal, double rhs) = 0;
+
 protected:
 
 	const unsigned int dimension_;

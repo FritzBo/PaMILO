@@ -44,7 +44,8 @@ public:
 		vertex_container(nullptr),
 		vertices_(0),
 		facets_(0),
-		ve_time(0)
+		ve_time(0),
+		oldWouldntButNewWould(0)
 	{ }
 
 	~DualBensonScalarizer() {
@@ -59,6 +60,8 @@ public:
 
 	int number_vertices() { return vertices_; }
 	int number_facets() { return facets_; }
+
+	int oldWouldntButNewWould;
 
 protected:
 	unsigned int dimension_;
@@ -105,7 +108,10 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 	ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
 
 
-	Point *candidate, weighting(dimension_), inequality(dimension_);
+	Point *candidate;
+	Point weighting(dimension_);
+	Point inequality(dimension_);
+
 	double scalar_value;
     while(vertex_container->has_next()) {
         iteration_counter++;
@@ -144,18 +150,39 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 #ifndef NDEBUG
         std::cout << "scalar value: " << scalar_value << std::endl;
         std::cout << "value vector: " << value << std::endl;
+		std::cout << "candidate value: " << (*candidate)[dimension_ -1] << std::endl;
 #endif
+		for(unsigned int i = 0; i < dimension_ - 1; ++i) {
+			double val = value[i] - value[dimension_ -1];
+			if(abs(val) < epsilon_) {
+				val = 0;
+			}
+			inequality[i] = value[i] - value[dimension_ - 1];
+		}
+		inequality[dimension_ - 1] = -1;
 
-        if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_) {
+		// theoretically both values should be the same
+		// first check is for debug, second is the real deal
+		if(scalar_value - (*candidate)[dimension_ - 1] <= -epsilon_
+				&& vertex_container->getDistance(*candidate,
+				                                 inequality,
+				                                 -value[dimension_ -1])> -epsilon_)
+		{
+			oldWouldntButNewWould++;
+			std::cout << scalar_value - (*candidate)[dimension_ - 1] << " vs. "
+				<< vertex_container->getDistance(*candidate, inequality, -value[dimension_ -1]) << std::endl;
+		}
+        if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_
+			//	|| ((*candidate) * inequality) + value[dimension_ -1] > -epsilon_
+				|| vertex_container->getDistance(*candidate,
+				                                 inequality,
+												 -value[dimension_ -1]) > -epsilon_
+				) {
 			facets_++;
 #ifndef NDEBUG
             std::cout << "found a new permanent extreme point. continuing." << std::endl;
 #endif
         } else {
-            for(unsigned int i = 0; i < dimension_ - 1; ++i)
-                inequality[i] = value[i] - value[dimension_ - 1];
-            inequality[dimension_ - 1] = -1;
-
 			clock_t start = clock();
             vertex_container->add_hyperplane(*candidate, inequality, -value[dimension_ - 1]);
 			ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;

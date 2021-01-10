@@ -24,6 +24,7 @@ using std::set;
 using std::make_heap;
 using std::vector;
 using std::max;
+using std::abs;
 
 #include <pamilo/basic/point.h>
 
@@ -168,9 +169,18 @@ add_hyperplane(Point &vertex, Point &normal, double rhs) {
 
         double distance = projective_hyperplane * **it;
 
+		// minimal absolute distance in a component
+		// done to prevent numerical errors in cut point calculation
+		double minAbsCompDist = std::numeric_limits<double>::max();
+		for(int i = 0; i < dimension_ + 1; i++) {
+			if(projective_hyperplane[i] != 0) {
+				double absCompDist = abs(distance/projective_hyperplane[i]);
+				minAbsCompDist = std::min(minAbsCompDist, absCompDist);
+			}
+		}
         // point is cut off by the inequality
-        if(distance < -epsilon_) {
-            cut_off_points.push_back(it);
+		if((distance < -epsilon_) && (minAbsCompDist > epsilon_)) {
+			cut_off_points.push_back(it);
 
         // point is inside the inequality induced halfspace
         } else if(distance > epsilon_) {
@@ -205,25 +215,30 @@ add_hyperplane(Point &vertex, Point &normal, double rhs) {
             assert(inside_point.active_inequalities_.size() >= dimension_);
 
             if(check_adjacent(cut_off_point, inside_point)) {
-
-                new_points.push_back(add_cut_point(cut_off_point,
-                                                   inside_point,
-                                                   projective_hyperplane)
-                                     );
+				cut_off_point.removed = true;
+				new_points.push_back(add_cut_point(cut_off_point,
+											   inside_point,
+											   projective_hyperplane));
             }
         }
     }
 
+	bool last_candidate_in_cut_off_points = false;
     // mark all cut off points as removed
     for(auto point_it : cut_off_points) {
         (*point_it)->removed = true;
         extreme_points_.erase(point_it);
+		if(*point_it == last_candidate) {
+			last_candidate_in_cut_off_points = true;
+		}
     }
 
-    delete last_candidate;
+	if(last_candidate_in_cut_off_points) {
+		delete last_candidate;
+	}
 
-    // put all new points in the priority queue and add them to the list
-    // of extreme points
+    // put all new points in the priority queue
+	// and add them to the list of extreme points
     for(auto point : new_points) {
         push_pending(point);
         extreme_points_.push_back(point);
@@ -254,7 +269,7 @@ check_adjacent(GraphlessPoint& p1, const GraphlessPoint& p2) {
     }
 #endif
 
-    assert(!EqualityPointComparator()(p1, p2));
+    assert(!EqualityPointComparator(epsilon_)(p1, p2));
 
     if(std::abs(p1[dimension_]) < epsilon_ && std::abs(p2[dimension_]) < epsilon_) {
 #ifndef NDEBUG
@@ -436,10 +451,16 @@ add_cut_point(const GraphlessPoint& outside_point,
 
     alpha /=  inequality * diff_direction;
 
-    assert(alpha > epsilon_ && alpha < 1 + epsilon_);
+	//TODO if debug:
+	// diff_direction too big -> warn
+
+	assert(alpha > epsilon_);
+	assert(alpha < 1 + epsilon_);
 
     diff_direction *= alpha;
+
     GraphlessPoint* cut_point = new GraphlessPoint(outside_point + diff_direction);
+
     ProjectiveGeometry::normalize_projective(*cut_point);
 
     set_intersection(outside_point.active_inequalities_.cbegin(),
@@ -463,11 +484,15 @@ add_cut_point(const GraphlessPoint& outside_point,
     if(cut_point->active_inequalities_.size() < dimension_) {
         std::cout << "New point " << *cut_point << " has only " <<
         cut_point->active_inequalities_.size() << " active inequalities" << std::endl;
-        assert(false);
+        assert(cut_point->active_inequalities_.size() >= dimension_);
     }
 #endif
 
     return cut_point;
+}
+
+double GraphlessOVE::getDistance(Point &vertex, Point &normal, double rhs) {
+	return vertex * normal - rhs;
 }
 }
 

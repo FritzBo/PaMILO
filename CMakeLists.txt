@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.18)
 
 project(pamilo)
 
@@ -19,7 +19,7 @@ list(INSERT CMAKE_MODULE_PATH 0 "${module_dir}" )
 
 enable_testing()
 
-set(CMAKE_CXX_FLAGS "-DIL_STD")
+set(CMAKE_CXX_FLAGS "-DIL_STD") # not needed if cplex version is >= 20
 if(UNIX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++17 -Wno-ignored-attributes")
 elseif(WIN32)

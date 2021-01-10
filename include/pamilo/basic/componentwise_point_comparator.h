@@ -14,7 +14,7 @@
 
 class ComponentwisePointComparator {
 public:
-    inline ComponentwisePointComparator(double epsilon = 0, bool strict = true)
+    inline ComponentwisePointComparator(double epsilon, bool strict = true)
     : epsilon_(epsilon), strict_(strict) { }
 
     inline bool operator()(const Point * point1,
