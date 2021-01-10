@@ -19,8 +19,9 @@ mkdir -p "results"
 mkdir "results/$resultDir"
 
 ulimit -v 12388608
-apDir="instances/fritz15"
-apfiles=$(ls $apDir)
+#apDir="instances/fritz15"
+apDir="../molp-algo/instances/fritzins/"
+apfiles=$(find $apDir | grep "[0-9]$")
 #apfiles=$(echo $apfiles | grep "ap_3_[4-8][0-9]*_[0-9]*$\|ap_4_[1-4][0-9]_[0-9]*$\|ap_5_[1-2][0-9]_[0-9]*$\|ap_6_[0-9]_[0-9]*$\|ap_6_1[0-2]_[0-9]*$")
 fileList="$fileList $apfiles"
 
