@@ -135,5 +135,9 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
 
 	cycles_ += clock() - start;
 }
+
+double OnlineVertexEnumeratorCDD::getDistance(Point &vertex, Point &normal, double rhs) {
+	return vertex * normal - rhs;
+}
 }
 

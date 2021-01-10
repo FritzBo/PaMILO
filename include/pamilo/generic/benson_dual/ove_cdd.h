@@ -27,11 +27,12 @@ public:
 	OnlineVertexEnumeratorCDD() = delete;
 	virtual ~OnlineVertexEnumeratorCDD();
 
-    bool has_next();
-    Point * next_vertex();
-    void add_hyperplane(Point& vertex, Point& normal, double rhs);
+	bool has_next() override;
+	Point * next_vertex() override;
+	void add_hyperplane(Point& vertex, Point& normal, double rhs) override;
+	double getDistance(Point &vertex, Point &normal, double rhs) override;
 
-    unsigned int number_of_hyperplanes() {
+	unsigned int number_of_hyperplanes() {
 		return number_hyperplanes_;
 	}
 

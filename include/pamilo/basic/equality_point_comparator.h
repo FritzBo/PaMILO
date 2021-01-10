@@ -14,7 +14,7 @@
 
 class EqualityPointComparator {
 public:
-    inline EqualityPointComparator(double epsilon = 0)
+    inline EqualityPointComparator(double epsilon)
     : epsilon_(epsilon) { }
 
     inline bool operator()(const Point * point1,

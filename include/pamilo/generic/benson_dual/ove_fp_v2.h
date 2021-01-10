@@ -40,15 +40,17 @@ public:
                  ConstIterator extreme_rays_end,
                  ConstIterator inequalities_begin,
                  ConstIterator inequalities_end,
-                 double epsilon = 1E-8);
+                 double epsilon = 1E-7);
 
-    inline bool has_next();
+	inline bool has_next() override;
 
-    inline Point * next_vertex();
+	inline Point * next_vertex() override;
 
-    void add_hyperplane(Point &vertex, Point &normal, double rhs);
+	void add_hyperplane(Point &vertex, Point &normal, double rhs) override;
 
-    unsigned int number_of_hyperplanes() { return inequalities_.size(); }
+	unsigned int number_of_hyperplanes() override { return inequalities_.size(); }
+
+	double getDistance(Point &vertex, Point &normal, double rhs) override;
 
 private:
     class GraphlessPoint : public Point {

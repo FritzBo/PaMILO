@@ -6,23 +6,37 @@
 #  a copy of which can be found in the file LICENSE-academic.txt.
 #
 
-#instancedir=../../fritsolve/molp-algo/instances/fritzins
-instancedir=instances
+addKirlikInstances() {
+	fileList="$fileList $(find $1 | grep "\.lp$" | rev | cut -c 4- |rev)"
+}
 
 make -j16
 
-dir=$(date +%Y-%m-%d_%H-%M-%S)
-resDir="results/$dir"
+fileList=""
+
+resultDir=$(date +%Y-%m-%d_%H-%M-%S)
 mkdir -p "results"
-mkdir $resDir
+mkdir "results/$resultDir"
 
 ulimit -v 12388608
-#fileList=$(ls $instancedir | grep "ap_3_[4-8][0-9]*_[0-9]*$\|ap_4_[1-4][0-9]_[0-9]*$\|ap_5_[1-2][0-9]_[0-9]*$\|ap_6_[0-9]_[0-9]*$\|ap_6_1[0-2]_[0-9]*$")
-#fileList=$(ls instances | grep "TestFil_n.*lp\|TestFil-.*lp" | rev | cut -c 4- |rev)
-fileList=$(ls instances/kirlik/ILP | grep "\.lp$" | rev | cut -c 4- |rev)
-echo $fileList
+apDir="instances/fritz15"
+apfiles=$(ls $apDir)
+#apfiles=$(echo $apfiles | grep "ap_3_[4-8][0-9]*_[0-9]*$\|ap_4_[1-4][0-9]_[0-9]*$\|ap_5_[1-2][0-9]_[0-9]*$\|ap_6_[0-9]_[0-9]*$\|ap_6_1[0-2]_[0-9]*$")
+#fileList="$fileList $apfiles"
+
+#kimfiles="$fileList $(ls instances | grep "TestFil_n.*lp\|TestFil-.*lp" | rev | cut -c 4- |rev)
+#fileList="$fileList $kimfiles"
+
+addKirlikInstances "instances/kirlik/ILP"
+addKirlikInstances "instances/kirlik/MILPgenerated"
+addKirlikInstances "instances/kirlik/KP"
 
 
-parallel -j8 'sh ./scripts/runAP.sh {2}/{1} results/{3}' ::: $fileList ::: $instancedir ::: $dir
+#echo $fileList
+#echo $dirList
+
+
+#parallel -j8 'sh ./scripts/runAP.sh {2}/{1} results/{3}' ::: $fileList ::: $instancedir ::: $resultDir
+parallel -j8 'sh ./scripts/runAP.sh {1} results/{2}' ::: $fileList ::: $resultDir
 #cd results && zip -rv {3}/{1}.zip {3}/{1}* && cd .. && \
 	#rm results/{3}/{1}_*

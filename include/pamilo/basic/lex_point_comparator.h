@@ -14,7 +14,7 @@
 
 class LexPointComparator {
 public:
-    inline LexPointComparator(double epsilon = 0, bool strict = true)
+    inline LexPointComparator(double epsilon, bool strict = true)
     : epsilon_(epsilon), strict_(strict) {}
 
     inline bool operator()(const Point * p1,
@@ -92,7 +92,7 @@ is_lex_leq(const Point &p1,
 class LexWeightedPointComparator {
 public:
     inline LexWeightedPointComparator(Point weighting,
-                                      double epsilon = 0,
+                                      double epsilon,
                                       bool strict = true)
     : epsilon_(epsilon), strict_(strict), weighting_(weighting) {}
 

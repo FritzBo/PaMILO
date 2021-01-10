@@ -14,7 +14,7 @@
 
 class ParetoDominationPointComparator {
 public:
-    inline ParetoDominationPointComparator(double epsilon = 0)
+    inline ParetoDominationPointComparator(double epsilon)
     : epsilon_(epsilon) { }
 
     inline bool operator()(const Point * p1,
