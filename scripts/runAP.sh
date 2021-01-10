@@ -11,20 +11,20 @@
 
 timelimit="1h"
 
-#bensolve="bensolve"
-bensolve="../../fritsolve/fritsolve/bensolve-2.1.0/bensolve"
+bensolve="bensolve"
+#bensolve="../../fritsolve/fritsolve/bensolve-2.1.0/bensolve"
 
-#cplex=~/cplex12_10/cplex/bin/x86-64_linux/cplex
-cplex=~/cplex/cplex/bin/x86-64_linux/cplex
+cplex=~/cplex12_10/cplex/bin/x86-64_linux/cplex
+#cplex=~/cplex/cplex/bin/x86-64_linux/cplex
 
-#polyscip=~/Downloads/scipoptsuite-6.0.2/build/bin/applications/polyscip
-polyscip=~/Downloads/scip6.0.2-release/bin/applications/polyscip
+polyscip=~/Downloads/scipoptsuite-6.0.2/build/bin/applications/polyscip
+#polyscip=~/Downloads/scip6.0.2-release/bin/applications/polyscip
 
 if [[ $(basename $1) == "ap_"* ]]; then
 	python3 scripts/instanceFritzToVLP.py "../$1"
 
-	#python3 ../molp-algo/scripts/instanceFritzToVLP.py "$1"
-	python3 ../../fritsolve/molp-algo/scripts/instanceFritzToVLP.py "$1"
+	python3 ../molp-algo/scripts/instanceFritzToVLP.py "$1"
+	#python3 ../../fritsolve/molp-algo/scripts/instanceFritzToVLP.py "$1"
 fi
 
 rm -f $1.mps

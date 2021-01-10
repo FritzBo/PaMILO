@@ -22,7 +22,7 @@ ulimit -v 12388608
 apDir="instances/fritz15"
 apfiles=$(ls $apDir)
 #apfiles=$(echo $apfiles | grep "ap_3_[4-8][0-9]*_[0-9]*$\|ap_4_[1-4][0-9]_[0-9]*$\|ap_5_[1-2][0-9]_[0-9]*$\|ap_6_[0-9]_[0-9]*$\|ap_6_1[0-2]_[0-9]*$")
-#fileList="$fileList $apfiles"
+fileList="$fileList $apfiles"
 
 #kimfiles="$fileList $(ls instances | grep "TestFil_n.*lp\|TestFil-.*lp" | rev | cut -c 4- |rev)
 #fileList="$fileList $kimfiles"
