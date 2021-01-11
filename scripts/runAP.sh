@@ -30,30 +30,23 @@ fi
 rm -f $1.mps
 $cplex -c "read $1.lp" "write $1.mps" > /dev/null
 
-#make -j16
 mkdir -p $2
 
 pamiloOutCDD="$2/$(basename $1)_pamilo_cdd"
-rm $pamiloOutCDD >> /dev/null 2>&1
-#echo "/usr/bin/time -p timeout $timelimit ./pamilo_cli -E cdd $1.lp -o ${pamiloOutCDD} > ${pamiloOutCDD} 2> ${pamiloOutCDD}_time"
 /usr/bin/time -p timeout $timelimit ./pamilo_cli -E cdd $1.lp -o ${pamiloOutCDD} > ${pamiloOutCDD} 2> ${pamiloOutCDD}_time
 
 pamiloOutGL="$2/$(basename $1)_pamilo_graphless"
-rm $pamiloOutGL >> /dev/null 2>&1
 /usr/bin/time -p timeout $timelimit ./pamilo_cli -E graphless $1.lp -o ${pamiloOutGL} > ${pamiloOutGL} 2> ${pamiloOutGL}_time
 
-if [[ $(basename $1) == "ap_"* ]]; then
+if [[ $(basename $1) =~ "ap_"* ]]; then
 	benOutPrimal="$2/$(basename $1)_ben_primal"
-	rm ${benOutPrimal}* >> /dev/null 2>&1
 	/usr/bin/time -p timeout $timelimit ${bensolve} $1.vlp -Aprimal -aprimal -o ${benOutPrimal} >> /dev/null 2> ${benOutPrimal}_time
 
 	benOutDual="$2/$(basename $1)_ben_dual"
-	rm ${benOutDual}* >> /dev/null 2>&1
 	/usr/bin/time -p timeout $timelimit ${bensolve} $1.vlp -Adual -adual -o ${benOutDual} >> /dev/null 2> ${benOutDual}_time
 fi
 
 polyscipOut="$2/$(basename $1)_polyscip_out"
-rm ${polyscipOut}* >> /dev/null 2>&1
 /usr/bin/time -p timeout $timelimit ${polyscip} -x -p params.set "$1.mps" > ${polyscipOut} 2> ${polyscipOut}_time
 
 echo ""
