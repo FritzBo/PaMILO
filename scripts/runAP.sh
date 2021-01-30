@@ -21,7 +21,7 @@ polyscip=~/Downloads/scipoptsuite-6.0.2/build/bin/applications/polyscip
 #polyscip=~/Downloads/scip6.0.2-release/bin/applications/polyscip
 
 if [[ $(basename $1) == "ap_"* ]]; then
-	python3 scripts/instanceFritzToVLP.py "../$1"
+	python3 scripts/instanceFritzToVLP.py "$1"
 
 	python3 ../molp-algo/scripts/instanceFritzToVLP.py "$1"
 	#python3 ../../fritsolve/molp-algo/scripts/instanceFritzToVLP.py "$1"

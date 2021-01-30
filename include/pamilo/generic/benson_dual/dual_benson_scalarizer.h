@@ -36,9 +36,11 @@ public:
 			std::function<double(const Point& weighting, Point& value, SolType &sol)> solver,
 			std::function<void(std::pair<SolType, Point*>)> printSol,
 			unsigned int dimension,
-        	double epsilon)
+			double epsilon,
+			double veEpsilon)
     :   dimension_(dimension),
 		epsilon_(epsilon),
+		veEpsilon_(veEpsilon),
 		solver_(solver),
 		printSol_(printSol),
 		vertex_container(nullptr),
@@ -66,6 +68,7 @@ public:
 protected:
 	unsigned int dimension_;
 	double epsilon_;
+	double veEpsilon_;
 
 	std::function<double(const Point&, Point&, SolType &sol)> solver_;
 	std::function<void(std::pair<SolType, Point*>)> printSol_;
@@ -103,7 +106,7 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 	if(vertex_container) {
 		delete vertex_container;
 	}
-	vertex_container = new OnlineVertexEnumerator(value, dimension_, epsilon_);
+	vertex_container = new OnlineVertexEnumerator(value, dimension_, veEpsilon_);
 	delete vertex_container->next_vertex();
 	ve_time += (clock() - start) / (double) CLOCKS_PER_SEC;
 

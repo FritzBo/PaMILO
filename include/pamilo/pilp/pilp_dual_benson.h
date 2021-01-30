@@ -56,9 +56,12 @@ void ILPSolverPrinter::operator()(std::pair<std::string, Point*> sol) {
 
 class ILPSolverAdaptor {
 public:
-    ILPSolverAdaptor(ILP &ilp, Log& log, double eps)
-		: ilp_(ilp), log_(log), eps_(eps)
+    ILPSolverAdaptor(ILP &ilp, Log& log, double eps, double solverEps = -1)
+		: ilp_(ilp), log_(log), eps_(eps), solverEps_(solverEps)
 	{
+		if(solverEps != -1) {
+			ilp.cplex.setParam(IloCplex::Param::MIP::Tolerances::Linearization, solverEps_);
+		}
 		if(ilp.noPreprocessing) {
 			ilp.logFile << "preprocessing time: 0\n";
 			return;
@@ -150,6 +153,7 @@ private:
 	Log &log_;
 
 	double eps_;
+	double solverEps_;
 
 // removable?    std::set<Point*, LexPointComparator> known_points_;
 };
@@ -157,13 +161,15 @@ private:
 template<typename OnlineVertexEnumerator>
 class PilpDualBensonSolver : public AbstractSolver<std::string> {
 public:
-    PilpDualBensonSolver(double epsilon = 1E-7)
-    :   epsilon_(epsilon) {}
+    PilpDualBensonSolver(double epsilon = 1E-7, double veEps = -1, double solverEps = -1)
+    :   epsilon_(epsilon), veEps_(veEps), solverEps_(solverEps) {}
 
     void Solve(ILP &ilp);
 
 private:
     double epsilon_;
+	double veEps_;
+    double solverEps_;
 
 };
 
@@ -315,10 +321,11 @@ Solve(ILP &ilp) {
 	Log log;
 
     DualBensonScalarizer<OnlineVertexEnumerator, std::string>
-    dual_benson_solver(ILPSolverAdaptor(ilp, log, epsilon_),
+    dual_benson_solver(ILPSolverAdaptor(ilp, log, epsilon_, solverEps_),
                        ILPSolverPrinter(ilp),
                        ilp.dimension,
-                       epsilon_);
+                       epsilon_,
+					   veEps_);
 
     dual_benson_solver.Calculate_solutions(frontier);
 

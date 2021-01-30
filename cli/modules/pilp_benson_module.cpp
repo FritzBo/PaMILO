@@ -48,6 +48,9 @@ void PilpBensonModule::perform(int argc, char** argv) {
         ValueArg<string> output_name_argument("o", "output", "Basename of the output files. This defaults to <instance>.", false, "", "output");
 
         ValueArg<double> epsilon_argument("e", "epsilon", "Epsilon to be used in floating point calculations.", false, 1E-7, "epsilon");
+        ValueArg<double> solver_epsilon_argument("s", "solver-epsilon", "Epsilon to be used in floating point calculations of the solver. This defaults to -1 (use default eps of solver).", false, -1, "solver-epsilon");
+
+        ValueArg<double> vertex_enumerator_epsilon_argument("v", "vertex-enumerator-epsilon", "Epsilon to be used in floating point calculations of the vertex enumerator. This defaults to -1 (use default epsilon of vertex enumerator).", false, -1, "vertex-enumerator-epsilon");
 
         UnlabeledValueArg<string> instance_name_argument("instance", "Name of the instance file.", true, "","instance");
 
@@ -57,6 +60,8 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
         cmd.add(output_name_argument);
         cmd.add(epsilon_argument);
+        cmd.add(solver_epsilon_argument);
+        cmd.add(vertex_enumerator_epsilon_argument);
         cmd.add(instance_name_argument);
         cmd.add(no_preprocessing_argument);
 		cmd.add(ve_argument);
@@ -67,6 +72,8 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
         string instance_name = instance_name_argument.getValue();
         double epsilon = epsilon_argument.getValue();
+        double sEpsilon = solver_epsilon_argument.getValue();
+        double veEpsilon = vertex_enumerator_epsilon_argument.getValue();
 		string output_name = output_name_argument.getValue();
 		bool no_preprocessing = no_preprocessing_argument.getValue();
 		string ve = ve_argument.getValue();
@@ -86,7 +93,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
 #ifdef USE_CDD
 			if(ve == "cdd" || (ilp.dimension > 4 && ve == "auto")) {
-				PilpDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon);
+				PilpDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon, veEpsilon, sEpsilon);
 				solver.Solve(ilp);
 
 				solutions_.insert(solutions_.begin(),
@@ -99,7 +106,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 					std::cerr << "cdd is not activated in cmake!\n";
 					exit(0);
 				}
-				PilpDualBensonSolver<GraphlessOVE> solver(epsilon);
+				PilpDualBensonSolver<GraphlessOVE> solver(epsilon, veEpsilon, sEpsilon);
 				solver.Solve(ilp);
 
 				solutions_.insert(solutions_.begin(),
