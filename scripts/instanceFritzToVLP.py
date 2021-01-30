@@ -9,7 +9,7 @@ import os
 import sys
 
 baseDir = os.path.dirname(os.path.realpath(__file__))
-#baseDir = baseDir + "/.."
+baseDir = baseDir + "/.."
 
 inputFile = open(os.path.join(baseDir, sys.argv[1]), "r+")
 

@@ -11,7 +11,7 @@
 
 timelimit="1h"
 
-bensolve="bensolve"
+bensolve="../bensolve-2.1.0/bensolve"
 #bensolve="../../fritsolve/fritsolve/bensolve-2.1.0/bensolve"
 
 cplex=~/cplex12_10/cplex/bin/x86-64_linux/cplex
@@ -20,7 +20,9 @@ cplex=~/cplex12_10/cplex/bin/x86-64_linux/cplex
 polyscip=~/Downloads/scipoptsuite-6.0.2/build/bin/applications/polyscip
 #polyscip=~/Downloads/scip6.0.2-release/bin/applications/polyscip
 
-if [[ $(basename $1) == "ap_"* ]]; then
+inst=$(basename $1)
+
+if [[ ${inst} == "ap_"* ]]; then
 	python3 scripts/instanceFritzToVLP.py "$1"
 
 	python3 ../molp-algo/scripts/instanceFritzToVLP.py "$1"
@@ -32,25 +34,36 @@ $cplex -c "read $1.lp" "write $1.mps" > /dev/null
 
 mkdir -p $2
 
-pamiloOutCDD="$2/$(basename $1)_pamilo_cdd"
-/usr/bin/time -p timeout $timelimit ./pamilo_cli -E cdd $1.lp -o ${pamiloOutCDD} > ${pamiloOutCDD} 2> ${pamiloOutCDD}_time
+eps="1e-9"
 
-pamiloOutGL="$2/$(basename $1)_pamilo_graphless"
-/usr/bin/time -p timeout $timelimit ./pamilo_cli -E graphless $1.lp -o ${pamiloOutGL} > ${pamiloOutGL} 2> ${pamiloOutGL}_time
+#pamiloOutCDDeps="$2/${inst}_pamilo_cdd_eps"
+#timeout $timelimit /usr/bin/time -p ./pamilo_cli -E cdd -e $eps -v "1e-7" $1.lp -o ${pamiloOutCDDeps} > ${pamiloOutCDDeps} 2> ${pamiloOutCDDeps}_time
 
-if [[ $(basename $1) =~ "ap_"* ]]; then
-	benOutPrimal="$2/$(basename $1)_ben_primal"
+pamiloOutCDD="$2/${inst}_pamilo_cdd"
+/usr/bin/time -p timeout $timelimit ./pamilo_cli -E cdd -e $eps $1.lp -o ${pamiloOutCDD} > ${pamiloOutCDD} 2> ${pamiloOutCDD}_time
+
+pamiloOutGL="$2/${inst}_pamilo_graphless"
+/usr/bin/time -p timeout $timelimit ./pamilo_cli -E graphless -e $eps $1.lp -o ${pamiloOutGL} > ${pamiloOutGL} 2> ${pamiloOutGL}_time
+
+if [[ ${inst} =~ "ap_"* ]]; then
+	benOutPrimal="$2/${inst}_ben_primal"
 	/usr/bin/time -p timeout $timelimit ${bensolve} $1.vlp -Aprimal -aprimal -o ${benOutPrimal} >> /dev/null 2> ${benOutPrimal}_time
 
-	benOutDual="$2/$(basename $1)_ben_dual"
+	benOutDual="$2/${inst}_ben_dual"
 	/usr/bin/time -p timeout $timelimit ${bensolve} $1.vlp -Adual -adual -o ${benOutDual} >> /dev/null 2> ${benOutDual}_time
 fi
 
-polyscipOut="$2/$(basename $1)_polyscip_out"
-/usr/bin/time -p timeout $timelimit ${polyscip} -x -p params.set "$1.mps" > ${polyscipOut} 2> ${polyscipOut}_time
+#polyscipOut="$2/${inst}_polyscip_out"
+#/usr/bin/time -p timeout $timelimit ${polyscip} -x -p params.set "$1.mps" > ${polyscipOut} 2> ${polyscipOut}_time
 
 echo ""
 
 
-#python3 scripts/diffEps.py ${pamiloOut} ${benOut}_img_p.sol
-
+cd $2
+rm ${inst}_ben_*_adj*
+rm ${inst}_ben_*_inc*
+rm ${inst}_ben_*_img*
+rm ${inst}_pamilo_*_cplex
+rm ${inst}_pamilo_*_sol
+zip -rv ${inst}.zip ${inst}*
+rm ${inst}_*

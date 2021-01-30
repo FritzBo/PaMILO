@@ -48,7 +48,11 @@ public:
 		facets_(0),
 		ve_time(0),
 		oldWouldntButNewWould(0)
-	{ }
+	{
+		if(veEpsilon_ == -1) {
+			veEpsilon_ = epsilon_;
+		}
+	}
 
 	~DualBensonScalarizer() {
 		if(vertex_container) {
