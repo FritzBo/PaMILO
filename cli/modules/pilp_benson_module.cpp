@@ -74,6 +74,9 @@ void PilpBensonModule::perform(int argc, char** argv) {
         double epsilon = epsilon_argument.getValue();
         double sEpsilon = solver_epsilon_argument.getValue();
         double veEpsilon = vertex_enumerator_epsilon_argument.getValue();
+		if(veEpsilon = -1) {
+			veEpsilon = epsilon;
+		}
 		string output_name = output_name_argument.getValue();
 		bool no_preprocessing = no_preprocessing_argument.getValue();
 		string ve = ve_argument.getValue();

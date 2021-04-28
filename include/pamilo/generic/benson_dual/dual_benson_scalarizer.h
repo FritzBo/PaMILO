@@ -10,6 +10,10 @@
 //
 //
 
+//#define WEPS
+//#define VALEPS
+//#define DMEAS
+
 #pragma once
 
 #include <list>
@@ -97,7 +101,7 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 	v[0] = 1;
 
 	SolType sol;
-	v[dimension_ - 1] = solver_(v, value, sol);
+	solver_(v, value, sol);
 	auto solPair = std::make_pair(sol, new Point(value));
 	solutions.push_back(solPair);
 	printSol_(solPair);
@@ -138,8 +142,13 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 
         for(unsigned int i = 0; i < dimension_; ++i) {
 			value[i] = 0;
-			if(weighting[i] < epsilon_) {
+			if(weighting[i] < 0) {
+#ifndef NDEBUG
+				std::printf("\n\n\nweight eps: %E\n\n\n", weighting[i]);
+#endif
+#ifdef WEPS
 				weighting[i] = 0;
+#endif
 			}
 		}
 
@@ -158,9 +167,14 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 		for(unsigned int i = 0; i < dimension_ - 1; ++i) {
 			double val = value[i] - value[dimension_ -1];
 			if(abs(val) < epsilon_) {
+#ifndef NDEBUG
+				std::cout << "\n\n\nval eps. val: " << val << ", eps: " << epsilon_ << " component: " << i << ", from value[i] = " << value[i] << " and value[dim-1] = " << value[dimension_ -1] << "\n\n\n";
+#endif
+#ifdef VALEPS
 				val = 0;
+#endif
 			}
-			inequality[i] = value[i] - value[dimension_ - 1];
+			inequality[i] = val;
 		}
 		inequality[dimension_ - 1] = -1;
 
@@ -176,10 +190,11 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 				<< vertex_container->getDistance(*candidate, inequality, -value[dimension_ -1]) << std::endl;
 		}
         if(scalar_value - (*candidate)[dimension_ - 1] > -epsilon_
-			//	|| ((*candidate) * inequality) + value[dimension_ -1] > -epsilon_
+#ifdef DMEAS
 				|| vertex_container->getDistance(*candidate,
 				                                 inequality,
 												 -value[dimension_ -1]) > -epsilon_
+#endif
 				) {
 			facets_++;
 #ifndef NDEBUG

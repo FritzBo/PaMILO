@@ -60,6 +60,7 @@ public:
 		: ilp_(ilp), log_(log), eps_(eps), solverEps_(solverEps)
 	{
 		if(solverEps != -1) {
+			ilp.logFile << "solver epsilon set to: " << solverEps << "\n";
 			ilp.cplex.setParam(IloCplex::Param::MIP::Tolerances::Linearization, solverEps_);
 		}
 		if(ilp.noPreprocessing) {

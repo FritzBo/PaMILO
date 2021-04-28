@@ -10,6 +10,8 @@
 //
 //
 
+//#define MACD
+
 #include <pamilo/generic/benson_dual/ove_fp_v2.h>
 
 #include <list>
@@ -172,12 +174,14 @@ add_hyperplane(Point &vertex, Point &normal, double rhs) {
 		// minimal absolute distance in a component
 		// done to prevent numerical errors in cut point calculation
 		double minAbsCompDist = std::numeric_limits<double>::max();
+#ifdef MACD
 		for(int i = 0; i < dimension_ + 1; i++) {
 			if(projective_hyperplane[i] != 0) {
 				double absCompDist = abs(distance/projective_hyperplane[i]);
 				minAbsCompDist = std::min(minAbsCompDist, absCompDist);
 			}
 		}
+#endif
         // point is cut off by the inequality
 		if((distance < -epsilon_) && (minAbsCompDist > epsilon_)) {
 			cut_off_points.push_back(it);
@@ -455,7 +459,7 @@ add_cut_point(const GraphlessPoint& outside_point,
 	// diff_direction too big -> warn
 
 	assert(alpha > epsilon_);
-	assert(alpha < 1 + epsilon_);
+	assert(alpha < 1 - epsilon_);
 
     diff_direction *= alpha;
 
