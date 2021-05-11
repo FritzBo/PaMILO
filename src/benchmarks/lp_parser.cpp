@@ -24,6 +24,7 @@ namespace pamilo {
 	void LPparser::getILP(string filename, ILP &ilp) {
 		try {
 			ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
+			ilp.multiObj = ilp.obj;
 		} catch(IloException &e) {
 			cerr << "CPLEX failed to read the file. This is likely, because the input file is corrupted or is not a MOMIP\n";
 			exit(-1);
@@ -33,7 +34,7 @@ namespace pamilo {
 		ilp.cplex.setParam(IloCplex::Param::Threads, 1);
 		ilp.cplex.setOut(ilp.cplexFile);
 
-		ilp.dimension = ilp.obj.getNumCriteria();
+		ilp.dimension = ilp.multiObj.getNumCriteria();
 
 		ilp.relScale.resize(ilp.dimension, 1);
 		ilp.offset.resize(ilp.dimension, 0);

@@ -40,7 +40,7 @@ public:
                  ConstIterator extreme_rays_end,
                  ConstIterator inequalities_begin,
                  ConstIterator inequalities_end,
-                 double epsilon = 1E-7);
+                 double epsilon = 1E-8);
 
 	inline bool has_next() override;
 

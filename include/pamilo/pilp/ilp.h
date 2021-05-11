@@ -23,6 +23,7 @@ public:
 	IloModel model;
 	IloCplex cplex;
 	IloObjective obj;
+	IloObjective multiObj;
 	IloNumVarArray vars;
 	IloRangeArray cons;
 

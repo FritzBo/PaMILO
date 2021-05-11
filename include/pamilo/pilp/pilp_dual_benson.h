@@ -103,7 +103,7 @@ public:
 			zeroCnt += (spread[i] == 0 ? 1 : 0);
 		}
 
-		auto sense = ilp_.obj.getSense();
+		auto sense = ilp_.multiObj.getSense();
 
 		std::nth_element(spread.begin(), spread.begin() + (dim+zeroCnt)/2, spread.end());
 		double medianSpread = spread[(dim+zeroCnt)/2];
@@ -111,7 +111,13 @@ public:
 			medianSpread = 0;
 		}
 		for(int i = 0; i < dim; i++) {
-			double offset = (sense == 1 ? -maxi[i] : -mini[i]);
+			//double offset = 0;// -maxi[i];
+			//if(maxi[i] < 0) {
+			//	offset = -maxi[i];
+			//} else if(mini[i] > 0) {
+			//	offset = -mini[i];
+			//}
+			double offset = (sense == IloObjective::Maximize ? -maxi[i] : -mini[i]);
 			ilp_.offset[i] = offset;
 			if(maxi[i] - mini[i] > 0 && medianSpread != 0) {
 				ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
@@ -126,19 +132,20 @@ public:
 		IloNumArray relTols(ilp_.env);
 
 		for(int i = 0; i < ilp_.dimension; i ++) {
-			objs.add(ilp_.relScale[i] * (ilp_.obj.getCriterion(i) + ilp_.offset[i]));
+			objs.add(ilp_.relScale[i] * (ilp_.multiObj.getCriterion(i) + ilp_.offset[i]));
 			weights.add(1);
 			prio.add(0);
 			absTols.add(0);
 			relTols.add(0);
 		}
 		ilp_.model.remove(ilp_.obj);
-		ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
+		ilp_.multiObj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
 										 prio, absTols, relTols), IloObjective::Minimize);
+		ilp_.obj = ilp_.multiObj;
 		ilp_.model.add(ilp_.obj);
 
 		ilp_.cplex.extract(ilp_.model);
-		ilp_.logFile << "preprocessed objectives: " << ilp_.obj << std::endl;
+		ilp_.logFile << "preprocessed objectives: " << ilp_.multiObj << std::endl;
 		ilp_.logFile << "preprocessing time: " << (clock() - start) / (double) CLOCKS_PER_SEC << "\n";
 	}
 
@@ -189,37 +196,53 @@ operator()(const Point& weighting,
 	IloIntArray prio(ilp_.env);
 	IloNumArray absTols(ilp_.env);
 	IloNumArray relTols(ilp_.env);
+	IloNumExpr singleObj(ilp_.env);
 
-	auto sense = ilp_.obj.getSense();
+	auto sense = ilp_.multiObj.getSense();
+
+	bool hasZeroWeight = false;
 
 	for(int i = 0; i < ilp_.dimension; i ++) {
-		objs.add(ilp_.obj.getCriterion(i) * sense);
-		weights.add(weighting[i]);
-		prio.add(2);
-		absTols.add(0);
-		relTols.add(0);
-	}
-
-	for(int i = 0; i < ilp_.dimension; i++) {
 		if(weighting[i] < eps_) {
-			objs.add(ilp_.obj.getCriterion(i) * sense);
+			hasZeroWeight = true;
+			objs.add(ilp_.multiObj.getCriterion(i) * sense);
 			weights.add(1);
 			prio.add(1);
 			absTols.add(0);
 			relTols.add(0);
+		} else {
+			objs.add(ilp_.multiObj.getCriterion(i) * sense);
+			weights.add(weighting[i]);
+			prio.add(2);
+			absTols.add(0);
+			relTols.add(0);
+			singleObj += ilp_.multiObj.getCriterion(i) * sense * weighting[i];
 		}
 	}
 
 	ilp_.model.remove(ilp_.obj);
-	ilp_.obj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
-									 prio, absTols, relTols), IloObjective::Minimize);
+	ilp_.multiObj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
+										 prio, absTols, relTols), IloObjective::Minimize);
+	if(hasZeroWeight) {
+		ilp_.obj = ilp_.multiObj;
+	} else {
+		ilp_.obj = IloObjective(ilp_.env, singleObj, IloObjective::Minimize);
+	}
 	ilp_.model.add(ilp_.obj);
 
 	ilp_.cplex.extract(ilp_.model);
+
 	bool doRun = true;
 	clock_t start = clock();
 
 	ilp_.cplex.solve();
+
+	log_.solver_time +=  (clock() - start) / double(CLOCKS_PER_SEC);
+	log_.nSolves++;
+
+	for(int i = 0; i < ilp_.dimension; i++) {
+		value[i] = ilp_.cplex.getValue(objs[i], -1);
+	}
 
 	auto solveStatus = ilp_.cplex.getStatus();
 
@@ -227,59 +250,7 @@ operator()(const Point& weighting,
 			|| solveStatus == IloAlgorithm::Status::Unbounded)
 	{
 		ilp_.logFile << "Problem is unbounded\n";
-		std::cerr << "Problem is unbounded\n";
 		exit(0);
-//		IloModel unbModel = IloGetClone(ilp_.env, ilp_.model);
-//		//unbModel.add(newMod);
-//		IloCplex unbCplex(ilp_.env);
-//		std::cout << std::endl << std::endl << solveStatus << std::endl;
-//		IloNumExpr soloObjFunc(ilp_.env);
-//		IloNumExprArray unbObjs(ilp_.env);
-//
-//		// make problem relaxed
-//		unbModel.add(IloConversion(ilp_.env, ilp_.vars, ILOFLOAT));
-//
-//		unbCplex.extract(unbModel);
-//		IloObjective obj = unbCplex.getObjective();
-//
-//		for(int i = 0; i < ilp_.dimension; i ++) {
-//			soloObjFunc += (obj.getCriterion(i) * sense * weighting[i]);
-//			unbObjs.add(obj.getCriterion(i) * sense);
-//		}
-//
-//		unbModel.remove(obj);
-//		unbModel.add(IloMinimize(ilp_.env, soloObjFunc));
-//		std::cout << "c\n";
-//		unbCplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
-//		unbCplex.setParam(IloCplex::Param::ParamDisplay, 0);
-//		unbCplex.setParam(IloCplex::Param::Threads, 1);
-//		unbCplex.setParam(IloCplex::Param::Preprocessing::Reduce, 0);
-//		unbCplex.setParam(IloCplex::Param::Preprocessing::Presolve, IloFalse);
-//		unbCplex.setParam(IloCplex::Param::RootAlgorithm, IloCplex::Primal);
-//		unbCplex.extract(unbModel);
-//		std::cout << unbModel << " is mip? " << unbCplex.isMIP() << /*ilp_.model <<*/ " b\n";
-//		for(int i = 0; i < ilp_.vars.getSize(); i++) {
-//			std::cout << ilp_.vars[i] << " has type " << ilp_.vars[i].getType() << "\n";
-//		}
-//		std::cout << "solo obj: " << unbCplex.getObjective() << unbCplex.solve() << std::endl;
-//		solveStatus = unbCplex.getStatus();
-//		std::cout << "unbounded\n";
-//		IloNumArray vals(ilp_.env);
-//		IloNumVarArray vars(ilp_.env);
-//		for(int i = 0; i < ilp_.dimension; i++) {
-//			std::cout << objs[1] << std::endl;
-//			value[i] = unbCplex.getValue(objs[i], -1);
-//		}
-//		std::cout << value << " here\n";
-//		unbCplex.getRay(vals, vars);
-//		std::cout << solveStatus << " ray: " << vals << vars << std::endl;
-	}
-
-	log_.solver_time +=  (clock() - start) / double(CLOCKS_PER_SEC);
-	log_.nSolves++;
-
-	for(int i = 0; i < ilp_.dimension; i++) {
-		value[i] = ilp_.cplex.getValue(objs[i], -1);
 	}
 
 	for(int i = 0; i < ilp_.vars.getSize(); i++) {
@@ -303,7 +274,7 @@ operator()(const Point& weighting,
 	}
 	sol += "\n";
 
-    return ilp_.cplex.getMultiObjInfo(IloCplex::MultiObjObjValue, 0);
+    return ilp_.cplex.getValue(singleObj, -1);
 }
 
 ILPSolverAdaptor::~ILPSolverAdaptor() {
