@@ -19,6 +19,12 @@
 class PilpBensonModule : public AlgorithmModule<std::string> {
 
 public:
+    /**
+     * @brief 
+     * 
+     * @param argc 
+     * @param args 
+     */
     virtual void perform(int argc, char** args);
     virtual ~PilpBensonModule() {}
 

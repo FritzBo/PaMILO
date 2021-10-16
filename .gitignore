@@ -30,3 +30,11 @@
 *.exe
 *.out
 *.app
+
+# build and debug directories
+build/*
+debug/*
+
+# documentation
+doc/*
+!doc/Doxyfile.in

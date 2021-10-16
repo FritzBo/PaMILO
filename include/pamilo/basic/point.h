@@ -19,66 +19,256 @@
 
 namespace pamilo {
 
+/**
+ * @brief Represents a point of dimension dimension_
+ * 
+ */
 class Point {
 public:
 
-    /// Destructor
+    /**
+     * @brief Destroy the Point object
+     * 
+     */
     virtual ~Point() noexcept { delete[] values_; }
 
+    /**
+     * @brief Constructs a point of dimension 0
+     * 
+     */
     inline Point() : dimension_(0), values_(nullptr) { }
-    inline explicit Point(unsigned int dimension);
-	inline Point(const double *values, unsigned int dimension);
-    inline Point(double value, unsigned int dimension);
-    inline Point(std::initializer_list<double> values);
 
-    /// Copy constructor
+    /**
+     * @brief Construct a new Point object. All values are initially 0
+     * 
+     * @param dimension Number of dimensions
+     */
+    inline explicit Point(unsigned int dimension);
+
+    /**
+     * @brief Construct a new Point object with values
+     * 
+     * @param values Pointer to an array of values. Copies the first dimension entries of values into the point
+     * @param dimension Number of dimensions
+     */
+	inline Point(const double *values, unsigned int dimension);
+
+    /**
+     * @brief Construct a new Point object and initialises values to value
+     * 
+     * @param value Initial value for all values
+     * @param dimension Number of dimensions
+     */
+    inline Point(double value, unsigned int dimension);
+
+    /**
+     * @brief Construct a new Point object from a list of values. Dimension is size of the list
+     * 
+     * @param values Initial values
+     */
+    inline Point(const std::initializer_list<double> values);
+
+    /**
+     * @brief Copy constructor
+     * 
+     * @param p 
+     */
 	inline Point(const Point &p);
 
-    /// Move constructor
+    /**
+     * @brief Move constructor
+     * 
+     * @param that 
+     */
     inline Point(Point&& that) noexcept;
 
-    /// Copy assignment
+    /**
+     * @brief Copy assignment
+     * 
+     * @param that 
+     * @return Point& 
+     */
 	inline Point & operator=(const Point& that) noexcept;
 
-    // Move assignment
+    /**
+     * @brief Move assignment
+     * 
+     * @param that 
+     * @return Point& 
+     */
     inline Point & operator=(Point&& that) noexcept;
 
+    /**
+     * @brief dimension getter
+     * 
+     * @return unsigned 
+     */
     unsigned dimension() const noexcept { return dimension_; }
 
+    /**
+     * @brief Adds another point componentwise to this point
+     * 
+     * @param that 
+     * @return Point& 
+     */
     inline Point & operator+=(const Point &that) noexcept;
+
+
+    /**
+     * @brief Substracts another point componentwise from this point
+     * 
+     * @param that 
+     * @return Point& 
+     */
     inline Point & operator-=(const Point &that) noexcept;
 
+    /**
+     * @brief Scalar multiplication on this point
+     * 
+     * @param d 
+     * @return Point& 
+     */
     inline Point & operator*=(double d) noexcept;
 
+    /**
+     * @brief Point substraction
+     * 
+     * @return Point 
+     */
     inline Point operator-() const &;
+
+    /**
+     * @brief Point substraction
+     * 
+     * @return Point 
+     */
     inline Point operator-() &&;
 
+    /**
+     * @brief Point addition
+     * 
+     * @param that 
+     * @return Point 
+     */
     inline Point operator+(Point that) const & noexcept;
+
+    /**
+     * @brief Point addition
+     * 
+     * @param that 
+     * @return Point 
+     */
     inline Point operator+(const Point& that) && noexcept;
 
+    /**
+     * @brief Point substraction
+     * 
+     * @param that 
+     * @return Point 
+     */
     inline Point operator-(Point that) const & noexcept;
-    inline Point operator-(const Point& that) && noexcept;
 
-    /// Inner Product
+    /**
+     * @brief Point substraction
+     * 
+     * @param that 
+     * @return Point 
+     */
+    inline Point operator-(const Point& that) && noexcept;
+    
+    /**
+     * @brief Calculates inner product
+     * 
+     * @param point
+     * @return double 
+     */
     inline double operator*(const Point &point) const noexcept;
 
+    /**
+     * @brief Access to values
+     * 
+     * @param index 
+     * @return double& 
+     */
 	double& operator[](unsigned int index) { return values_[index]; }
+
+    /**
+     * @brief Const access to values
+     * 
+     * @param index 
+     * @return const double& 
+     */
 	const double& operator[](unsigned int index) const { return values_[index]; }
 
+    /**
+     * @brief Const pointer to begin of values array
+     * 
+     * @return const double* 
+     */
     const double* cbegin() const { return values_; }
+
+    /**
+     * @brief Const pointer to end of values array
+     * 
+     * @return const double* 
+     */
     const double* cend() const { return values_ + dimension_; }
 
+    /**
+     * @brief Pointer to begin of values array
+     * 
+     * @return double* 
+     */
     double* begin() { return values_; }
+
+    /**
+     * @brief Pointer to end of values array
+     * 
+     * @return double* 
+     */
     double* end() { return values_ + dimension_; }
 
+    /**
+     * @brief Constructs new point of dimension dimensions and initial values 0 on the heap
+     * 
+     * @param dimension 
+     * @return Point* 
+     */
 	static Point * Null(const unsigned int dimension) { return new Point(0.0, dimension); }
+
+    /**
+     * @brief Constructs new point of dimension dimensions and initial values 1 on the heap
+     * 
+     * @param dimension 
+     * @return Point* 
+     */
 	static Point * One(const unsigned int dimension) { return new Point(1.0, dimension); }
 
+    /**
+     * @brief Prints the entries of values in order on the ostream
+     * 
+     * @return std::ostream& same as input ostream&)
+     */
 	friend std::ostream & operator<<(std::ostream &, const Point &);
+
+    /**
+     * @brief Swap implementation
+     * 
+     * @param p1 
+     * @param p2 
+     */
     friend void swap(Point& p1, Point& p2);
 
 private:
+    /**
+     * @brief Dimension of the point
+     * 
+     */
     unsigned int dimension_ = 0;
+    /**
+     * @brief Values of each dimension
+     * 
+     */
     double * values_ = nullptr;
 };
 
@@ -103,7 +293,7 @@ inline Point::Point(double value, unsigned int dimension)
     }
 }
 
-inline Point::Point(std::initializer_list<double> values)
+inline Point::Point(const std::initializer_list<double> values)
 : dimension_(values.size()) {
     values_ = dimension_ ? new double[values.size()] : nullptr;
     std::copy(values.begin(), values.end(), values_);

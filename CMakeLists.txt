@@ -158,3 +158,21 @@ endif()
 
 # create autogen header
 configure_file("cmake/config_autogen.h.in" "${PROJECT_BINARY_DIR}/config_autogen.h")
+
+# Doxygen
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    # set input and output files
+    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.in)
+
+    set(DOXYGEN_OUT ${CMAKE_CURRENT_SOURCE_DIR}/doc/Doxyfile.out)
+
+    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+
+    add_custom_target( doc
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        VERBATIM )
+else (DOXYGEN_FOUND)
+  message("Doxygen not found. Docs cannot be generated!")
+endif (DOXYGEN_FOUND)

@@ -54,7 +54,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
         UnlabeledValueArg<string> instance_name_argument("instance", "Name of the instance file.", true, "","instance");
 
-		SwitchArg no_preprocessing_argument("", "no-pre", "Don't run preprocessing. Only use this, if you know all objectives are in rougly the same range and either the lowest or the highest value in each objective is close to 0.", false);
+		SwitchArg no_preprocessing_argument("", "no-pre", "Don't run preprocessing. Only use this, if you know all objectives are in roughly the same range and either the lowest or the highest value in each objective is close to 0.", false);
 
 		ValueArg<string> ve_argument("E", "vertex-enumeration", "Which vertex enumeration algorithm is to be used. Options are: cdd, graphless, and auto (default)", false, "auto", "vertex-enumeration");
 

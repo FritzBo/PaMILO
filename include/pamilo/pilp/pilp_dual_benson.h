@@ -1,14 +1,14 @@
-//
-//  pilp_dual_benson.h
-//  pamilo
-//
-//  Created by Fritz Bökler and Mirko H. Wagner on 28.05.20.
-//
-//  This file is distributed for academics only
-//  under the terms of an MIT license based license,
-//  a copy of which can be found in the file LICENSE-academic.txt.
-//
-//
+/**
+ * @file pilp_dual_benson.h
+ * @author Fritz Bökler and Mirko H. Wagner
+ * @brief
+ * @date 28.05.20
+ * 
+ * This file is distributed for academics only under the terms of an MIT license based license, a copy of which can be found in the file LICENSE-academic.txt.
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 
 #pragma once
 
@@ -27,14 +27,41 @@
 
 namespace pamilo {
 
+/**
+ * @brief Struct to count the number of calls to the ilp solver and the cumulated cpu time of those
+ * 
+ */
 struct Log {
+    /**
+     * @brief Cumulated cpu time of solver calls
+     * 
+     */
 	double solver_time = 0;
+
+    /**
+     * @brief Number of solver calls
+     * 
+     */
 	int nSolves = 0;
 };
 
+/**
+ * @brief Objects of this class write solutions in solution files of ILP objects. Solution type used is string
+ * 
+ */
 class ILPSolverPrinter {
 public:
+    /**
+     * @brief Construct a new ILPSolverPrinter object
+     * 
+     * @param ilp The ILP onto whose solution file is written
+     */
 	ILPSolverPrinter(ILP &ilp) : ilp_(ilp) {}
+
+    /**
+     * @brief Writes on the solution file
+     * 
+     */
     inline void operator()(std::pair<std::string, Point*>);
 
 private:
@@ -56,6 +83,14 @@ void ILPSolverPrinter::operator()(std::pair<std::string, Point*> sol) {
 
 class ILPSolverAdaptor {
 public:
+    /**
+     * @brief Construct a new ILPSolverAdaptor.
+     * 
+     * @param ilp ILP object which contains the solver used in calculations
+     * @param log The log object to which the values are added
+     * @param eps Epsilon value for double comparison instead of 0.0
+     * @param solverEps Optional epsilon value used for CPLEX linearization. Ignored if -1
+     */
     ILPSolverAdaptor(ILP &ilp, Log& log, double eps, double solverEps = -1)
 		: ilp_(ilp), log_(log), eps_(eps), solverEps_(solverEps)
 	{
@@ -68,6 +103,8 @@ public:
 			return;
 		}
 
+        //Preprocessing
+
 		clock_t start = clock();
 		int dim = ilp_.dimension;
 
@@ -79,6 +116,8 @@ public:
 			maxi[i] = std::numeric_limits<double>::lowest();
 		}
 
+        //Calculate the min and max of the vertices of the upper image for every dimension
+        // min corresponds to ideal point, max to pseudo nadir
 		for(int i = 0; i < dim; i++) {
 			weighting[i] = 1;
 			Point value(dim);
@@ -100,23 +139,18 @@ public:
 				exit(0);
 			}
 			spread[i] = maxi[i] - mini[i];
-			zeroCnt += (spread[i] == 0 ? 1 : 0);
+			zeroCnt += (spread[i] == 0 ? 1 : 0); //Why not compare against epsilon?
 		}
 
 		auto sense = ilp_.multiObj.getSense();
 
-		std::nth_element(spread.begin(), spread.begin() + (dim+zeroCnt)/2, spread.end());
-		double medianSpread = spread[(dim+zeroCnt)/2];
-		if(zeroCnt == dim) {
-			medianSpread = 0;
-		}
+        double medianSpread = 0;
+        if (zeroCnt < dim) {
+            std::nth_element(spread.begin(), spread.begin() + (dim+zeroCnt)/2, spread.end());
+		    medianSpread = spread[(dim+zeroCnt)/2];
+        }
+
 		for(int i = 0; i < dim; i++) {
-			//double offset = 0;// -maxi[i];
-			//if(maxi[i] < 0) {
-			//	offset = -maxi[i];
-			//} else if(mini[i] > 0) {
-			//	offset = -mini[i];
-			//}
 			double offset = (sense == IloObjective::Maximize ? -maxi[i] : -mini[i]);
 			ilp_.offset[i] = offset;
 			if(maxi[i] - mini[i] > 0 && medianSpread != 0) {
@@ -153,8 +187,6 @@ public:
                              Point& value,
 							 std::string &sol);
 
-    inline ~ILPSolverAdaptor();
-
 private:
 	ILP &ilp_;
 
@@ -163,7 +195,6 @@ private:
 	double eps_;
 	double solverEps_;
 
-// removable?    std::set<Point*, LexPointComparator> known_points_;
 };
 
 template<typename OnlineVertexEnumerator>
@@ -172,25 +203,35 @@ public:
     PilpDualBensonSolver(double epsilon = 1E-7, double veEps = -1, double solverEps = -1)
     :   epsilon_(epsilon), veEps_(veEps), solverEps_(solverEps) {}
 
+    /**
+     * @brief Creates Solution to the ILP. Writes logging messages into ilp.logFile
+     * 
+     * @tparam OnlineVertexEnumerator The vertex enumerator to be used
+     */
     void Solve(ILP &ilp);
 
 private:
     double epsilon_;
 	double veEps_;
     double solverEps_;
-
 };
 
-// in: weigthing
-// out: value (of opt sol for weighting)
-// given (from constructor): ilp
-// return: weighted sum of value
+/**
+ * @brief Solves weighted sum problem of the instance.
+ * 
+ * @param weighting weight vector for the problem
+ * @param value Point in which a solution is stored
+ * @param sol String to which the point in solution space and objective space is written
+ * @return double value of optimal solution
+ */
 inline double ILPSolverAdaptor::
 operator()(const Point& weighting,
            Point& value,
 		   std::string &sol)
 {
 	ilp_.logFile << "weighting " << weighting << std::endl;
+
+    // Initialising ciplex objects
 	IloNumExprArray objs(ilp_.env);
 	IloNumArray weights(ilp_.env);
 	IloIntArray prio(ilp_.env);
@@ -200,6 +241,7 @@ operator()(const Point& weighting,
 
 	auto sense = ilp_.multiObj.getSense();
 
+    // Checks for zero values in weights. If one is found, solver needs to use lexicographic ordering
 	bool hasZeroWeight = false;
 
 	for(int i = 0; i < ilp_.dimension; i ++) {
@@ -222,10 +264,12 @@ operator()(const Point& weighting,
 
 	ilp_.model.remove(ilp_.obj);
 	ilp_.multiObj = IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights,
-										 prio, absTols, relTols), IloObjective::Minimize);
+										 prio, absTols, relTols), IloObjective::Minimize); // Why not into if?
 	if(hasZeroWeight) {
+        // Lexicographic solving, first optimizes weighted sum problem, then dimensions with non zero weights,then the remaining dimensions
 		ilp_.obj = ilp_.multiObj;
 	} else {
+        // Standard weighted sum, no lexicographic solving
 		ilp_.obj = IloObjective(ilp_.env, singleObj, IloObjective::Minimize);
 	}
 	ilp_.model.add(ilp_.obj);
@@ -277,12 +321,6 @@ operator()(const Point& weighting,
     return ilp_.cplex.getValue(singleObj, -1);
 }
 
-ILPSolverAdaptor::~ILPSolverAdaptor() {
-// removable?    for(auto point : known_points_) {
-// removable?        delete point;
-// removable?    }
-}
-
 template<typename OnlineVertexEnumerator>
 inline void PilpDualBensonSolver<OnlineVertexEnumerator>::
 Solve(ILP &ilp) {
@@ -331,7 +369,6 @@ Solve(ILP &ilp) {
 	ilp.logFile << "cplex time: " << log.solver_time << "\n";
 	ilp.logFile << "cplex solves: " << log.nSolves << "\n";
 	ilp.logFile << "time per solve: " << log.solver_time/log.nSolves << "\n";
-	ilp.logFile << "times old and new differed: " << dual_benson_solver.oldWouldntButNewWould << "\n";
 }
 }
 
