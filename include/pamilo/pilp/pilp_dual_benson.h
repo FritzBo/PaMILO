@@ -62,19 +62,33 @@ public:
      * @brief Writes on the solution file
      * 
      */
-    inline void operator()(std::pair<std::string, Point*>);
+    inline void operator()(std::pair<std::string, Point*>, bool);
 
 private:
 	ILP &ilp_;
 };
 
-void ILPSolverPrinter::operator()(std::pair<std::string, Point*> sol) {
+void ILPSolverPrinter::operator()(std::pair<std::string, Point*> sol, bool isFirst=false) {
 	Point &point = *(sol.second);
 	Point pointScaled(ilp_.dimension);
 	for(int i = 0; i < ilp_.dimension; i++) {
 		pointScaled[i] = (point[i] / ilp_.relScale[i]) - ilp_.offset[i];
 	}
-	ilp_.solFile << "[ " << pointScaled << " ]" << sol.first;
+	if(ilp_.solPrintType == "polyscip") {
+		ilp_.solFile << "[ " << pointScaled << " ]" << sol.first;
+	} else if(ilp_.solPrintType == "json") {
+		if(!isFirst) {
+			ilp_.solFile << ",";
+		}
+		ilp_.solFile << "\n\t\t{\n\t\t\t\"point\" : {";
+		for(int i = 0; i < ilp_.dimension; i++) {
+			if(i != 0) {
+				ilp_.solFile << ",";
+			}
+			ilp_.solFile << "\n\t\t\t\t\"obj" << std::to_string(i) << "\": " << pointScaled[i];
+		}
+		ilp_.solFile << "\n\t\t\t}," << sol.first << "\n\t\t}";
+	}
 #ifdef TEST
 	std::cout << "1 ";
 #endif
@@ -297,17 +311,29 @@ operator()(const Point& weighting,
 		exit(0);
 	}
 
+	if(ilp_.solPrintType == "json") {
+		sol += "\n\t\t\t\"variables\" : {";
+	}
 	for(int i = 0; i < ilp_.vars.getSize(); i++) {
 		auto var = ilp_.vars[i];
 		float val = ilp_.cplex.getValue(var);
 		if(val > eps_
 				|| val < - eps_)
 		{
-			sol += " ";
-			sol += var.getName();
-			sol += "=";
+			if(ilp_.solPrintType == "json") {
+				if(i != 0) {
+					sol += ",";
+				}
+				sol += "\n\t\t\t\t\"";
+				sol += var.getName();
+				sol += "\" : ";
+			} else {
+				sol += " ";
+				sol += var.getName();
+				sol += "=";
+			}
 			if(var.getType() != 2
-					|| ( val + eps_ > int(val + eps_)
+					|| ( val + eps_ > int(val - eps_)
 						&& val - eps_ < int(val + eps_)))
 			{
 				sol += std::to_string(int(val));
@@ -317,6 +343,9 @@ operator()(const Point& weighting,
 		}
 	}
 	sol += "\n";
+	if(ilp_.solPrintType == "json") {
+		sol += "\t\t\t}";
+	}
 
     return ilp_.cplex.getValue(singleObj, -1);
 }

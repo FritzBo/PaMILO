@@ -45,7 +45,7 @@ public:
      */
 	DualBensonScalarizer(
 			std::function<double(const Point& weighting, Point& value, SolType &sol)> solver,
-			std::function<void(std::pair<SolType, Point*>)> printSol,
+			std::function<void(std::pair<SolType, Point*>, bool)> printSol,
 			unsigned int dimension,
 			double epsilon,
 			double veEpsilon)
@@ -130,7 +130,7 @@ protected:
      * @brief 
      * 
      */
-	std::function<void(std::pair<SolType, Point*>)> printSol_;
+	std::function<void(std::pair<SolType, Point*>, bool)> printSol_;
 
 private:
     /**
@@ -176,7 +176,7 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 	solver_(v, value, sol);
 	auto solPair = std::make_pair(sol, new Point(value));
 	solutions.push_back(solPair);
-	printSol_(solPair);
+	printSol_(solPair, true);
 
 	clock_t start = clock();
 	if(vertex_container) {
@@ -269,7 +269,7 @@ Calculate_solutions(std::list<std::pair<SolType, Point *>>& solutions) {
 
 			auto solPair = std::make_pair(sol, new Point(value));
 			solutions.push_back(solPair);
-			printSol_(solPair);
+			printSol_(solPair, false);
         }
 
         delete candidate;

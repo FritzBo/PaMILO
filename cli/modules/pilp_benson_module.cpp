@@ -58,6 +58,8 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
 		ValueArg<string> ve_argument("E", "vertex-enumeration", "Which vertex enumeration algorithm is to be used. Options are: cdd, graphless, and auto (default)", false, "auto", "vertex-enumeration");
 
+		ValueArg<string> print_type_argument("p", "solution-print-type", "Which output format for the solution file is to be used. Options are: json (default) and polyscip", false, "json", "solution-print-type");
+
         cmd.add(output_name_argument);
         cmd.add(epsilon_argument);
         cmd.add(solver_epsilon_argument);
@@ -65,6 +67,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
         cmd.add(instance_name_argument);
         cmd.add(no_preprocessing_argument);
 		cmd.add(ve_argument);
+		cmd.add(print_type_argument);
 
         cmd.parse(argc, argv);
 
@@ -80,11 +83,16 @@ void PilpBensonModule::perform(int argc, char** argv) {
 		string output_name = output_name_argument.getValue();
 		bool no_preprocessing = no_preprocessing_argument.getValue();
 		string ve = ve_argument.getValue();
+		string solPrintType = print_type_argument.getValue();
 
 		if(output_name == "") {
 			output_name == instance_name;
 		}
 		ilp.solFile.open(output_name + "_sol");
+		ilp.solPrintType = solPrintType;
+		if(ilp.solPrintType == "json") {
+			ilp.solFile << "{\n\t\"solutions\": [";
+		}
 		ilp.logFile.open(output_name + "_log");
 		ilp.cplexFile.open(output_name + "_cplex");
 		ilp.noPreprocessing = no_preprocessing;
@@ -118,6 +126,9 @@ void PilpBensonModule::perform(int argc, char** argv) {
 			}
 		} catch (IloException &e) {
 			std::cerr << e.getMessage();
+		}
+		if(ilp.solPrintType == "json") {
+			ilp.solFile << "\n\t]\n}\n";
 		}
 		ilp.solFile.close();
 		ilp.logFile.close();

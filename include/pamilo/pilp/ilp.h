@@ -32,6 +32,7 @@ public:
 
 	std::string filename;
 	std::ofstream solFile;
+	std::string solPrintType;
 	std::ofstream logFile;
 	std::ofstream cplexFile;
 	bool noPreprocessing;
@@ -48,6 +49,7 @@ public:
 		dimension(-1),
 		filename("pilpInstance"),
 		solFile(""),
+		solPrintType("json"),
 		logFile(""),
 		cplexFile(""),
 		noPreprocessing(false),
