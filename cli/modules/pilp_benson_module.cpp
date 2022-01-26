@@ -86,7 +86,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 		string solPrintType = print_type_argument.getValue();
 
 		if(output_name == "") {
-			output_name == instance_name;
+			output_name = instance_name;
 		}
 		ilp.solFile.open(output_name + "_sol");
 		ilp.solPrintType = solPrintType;
