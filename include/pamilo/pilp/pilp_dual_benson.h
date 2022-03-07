@@ -80,14 +80,14 @@ void ILPSolverPrinter::operator()(std::pair<std::string, Point*> sol, bool isFir
 		if(!isFirst) {
 			ilp_.solFile << ",";
 		}
-		ilp_.solFile << "\n\t\t{\n\t\t\t\"point\" : {";
+		ilp_.solFile << "\n\t\t{\n\t\t\t\"values\" : [";
 		for(int i = 0; i < ilp_.dimension; i++) {
 			if(i != 0) {
 				ilp_.solFile << ",";
 			}
-			ilp_.solFile << "\n\t\t\t\t\"obj" << std::to_string(i) << "\": " << pointScaled[i];
+			ilp_.solFile << "\n\t\t\t\t" << pointScaled[i];
 		}
-		ilp_.solFile << "\n\t\t\t}," << sol.first << "\n\t\t}";
+		ilp_.solFile << "\n\t\t\t]," << sol.first << "\n\t\t}";
 	}
 #ifdef TEST
 	std::cout << "1 ";
@@ -314,6 +314,7 @@ operator()(const Point& weighting,
 	if(ilp_.solPrintType == "json") {
 		sol += "\n\t\t\t\"variables\" : {";
 	}
+    bool firstPrint = true;
 	for(int i = 0; i < ilp_.vars.getSize(); i++) {
 		auto var = ilp_.vars[i];
 		float val = ilp_.cplex.getValue(var);
@@ -321,9 +322,12 @@ operator()(const Point& weighting,
 				|| val < - eps_)
 		{
 			if(ilp_.solPrintType == "json") {
-				if(i != 0) {
+				if(!firstPrint) {
 					sol += ",";
 				}
+                else {
+                    firstPrint = false;
+                }
 				sol += "\n\t\t\t\t\"";
 				sol += var.getName();
 				sol += "\" : ";
