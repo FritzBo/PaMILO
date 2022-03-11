@@ -79,11 +79,11 @@ An indepth description of the CPLEX `.lp` format can be found in the [IBM Knowle
 A list of all extreme points is printed to the command line. Every line is one
 point, where the coordinates are separated by spaces.
 `<output>_log` logs the running time, the vertex enumeration time and the time
-that CPLEX took. If you want anything else to be logged, let me know.
-`<output>_sol` stores all extreme points with their corresponding variable assignment. Every line has the form:
+that CPLEX took. If you want anything else to be logged, let us know.
+`<output>_sol` stores all extreme points with their corresponding variable assignment. 
+The format is json, every solution is stored as an object in an array, with one solution looking like:
 ```
-[ <obj1> <obj2> ... ] <var1>=<val1> <var2>=<val2> ...
+{ "values" : [ <obj1>, <obj2>, ... ], "variables : { "<var1>":<val1>, "<var2>":<val2>, ... } }
 ```
-This format is the one used by PolySCIP. If you prefer any other solution format
-(e.g. xml or json based, like CPLEX’s .sol), let us know.
+The "variables" object stores only variables with a value other than o. If you prefer any other solution format let us know.
 
