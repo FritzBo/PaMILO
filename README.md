@@ -7,7 +7,7 @@ The implementation is based on the paper:
 
 Bökler, Fritz and Mutzel, Petra: Output-Sensitive Algorithms for Enumerating the Extreme Nondominated Points of Multiobjective Combinatorial Optimization Problems, Algorithms-ESA, LNCS 9294, Springer, DOI 10.1007/978-3-662-48350-3_25, 2015.
 
-For support please contact Mirko H. Wagner (mirwagner@uos.de).
+For support please contact Mirko H. Wagner (mirwagner@uos.de), Levin Nemesch (lnemesch@uos.de) or Fritz Bökler (fboekler@uos.de).
 
 # Installation
 ## UNIX/Linux
@@ -26,7 +26,7 @@ can be made more eﬀicient or the descriptions more precise.
 
  - Unzip pamilo.zip and go into the directory it is unzipped into.
  - Run `<path to cmake>\cmake.exe .` . If you have a standard installation of CPLEX this should suﬀice, but sometimes it does not. Refer to
-the CMake section below. I have not testet CDD on Windows.
+the CMake section below.
 
  - Start Visual Studio and build pamilo_cli in Release mode.
  - Go to `<path to pamilo>\Release` and run `pamilo_cli.exe` (for detailed
@@ -43,9 +43,6 @@ features introduced in in 12.9.
 
 If CPLEX is installed in a default location (`/opt/ibm/ILOG/CPLEX_Studio12<9+>` or `C:\Program Files\IBM\ILOG\CPLEX_Studio12<9+>`), it should be found automaticly. If it is installed in such a way that the directories `<path to cplex>/concert` and `<path to cplex>/cplex` are present you can set CPLEX to the `<path to cplex>`. Otherwise you have to set `CONCERT_INCLUDE_DIR` and `CPLEX_INCLUDE_DIR` to the directories containing `ilconcert/iloenv.h` and `ilcplex/ilocplex.h` respectively and `CONCERT_LIB`, `CPLEX_LIB`, and `ILOCPLEX_LIB` to the corresponding static libraries. Furthermore, on UNIX `CPLEX` needs the libraries `dl` and `pthread`.
 
-## CDD
-For four or more objectives the vertex enumeration can be sped up by using the `cddlib`. This is done by activating the CMake flag `USE_CDD` and (if they are not found automatically) providing `libcdd.a` in `CDD_LIB` and the directory containing `cdd.h` in `CDD_INCLUDE_PATH`. The cddlib can be found at [github.com/cddlib/cddlib](https://github.com/cddlib/cddlib).
-
 ## Usage
 `<pamilo_cli> [<parameters>] <instance>`
 
@@ -53,7 +50,7 @@ For four or more objectives the vertex enumeration can be sped up by using the `
 with ` <pamilo_cli> = ./pamilo_cli` on Linux/UNIX and `<pamilo_cli> = Release\pamilo_cli.exe` on Windows.
 
 
-Important parameters are:
+Important optional parameters are:
 
 
 `-o <output>` The basename for all output files. This defaults to `<instance>`
@@ -85,5 +82,5 @@ The format is json, every solution is stored as an object in an array, with one 
 ```
 { "values" : [ <obj1>, <obj2>, ... ], "variables : { "<var1>":<val1>, "<var2>":<val2>, ... } }
 ```
-The "variables" object stores only variables with a value other than o. If you prefer any other solution format let us know.
+The "variables" object stores only variables with a value other than 0. If you prefer any other solution format let us know.
 

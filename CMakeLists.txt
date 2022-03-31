@@ -59,35 +59,11 @@ find_library(CPLEX_LIB libcplex.a
 		"${CPLEX}/cplex/lib/x64_windows_msvc14/stat_mda"
 )
 
-## CDD ##
-option(USE_CDD "Whether to use cdd for vertex enumeration" OFF)
-if(USE_CDD)
-	find_path(CDD_INCLUDE_PATH
-		NAMES cdd.h
-		PATHS 	"/usr/include"
-			"/usr/local/include"
-			"~/.local/include"
-			"/opt/local/include"
-	)
-
-	find_library(CDD_LIB
-		NAMES libcdd.a
-		PATHS	"/usr/lib"
-			"/usr/local/lib"
-			"~/.local/lib"
-			"/opt/local/lib"
-	)
-endif()
-
 include_directories(include)
 include_directories(tclap)
 include_directories(${CPLEX_INCLUDE_DIR})
 include_directories(${CONCERT_INCLUDE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
-
-if(USE_CDD)
-	include_directories(${CDD_INCLUDE_PATH})
-endif()
 
 set(SOURCE_FILES
 
@@ -121,12 +97,6 @@ set(SOURCE_FILES
 	# Benson Dual
 	"src/generic/benson_dual/ove_fp_v2.cpp"
 )
-if(USE_CDD)
-	set(SOURCE_FILES ${SOURCE_FILES}
-		"src/generic/benson_dual/ove_cdd.cpp"
-		"include/pamilo/generic/benson_dual/ove_cdd.h"
-	)
-endif()
 
 add_library(pamilo STATIC ${SOURCE_FILES})
 
@@ -148,9 +118,6 @@ target_link_libraries(pamilo_cli pamilo)
 target_link_libraries(pamilo_cli "${ILOCPLEX_LIB}")
 target_link_libraries(pamilo_cli "${CONCERT_LIB}")
 target_link_libraries(pamilo_cli "${CPLEX_LIB}")
-if(USE_CDD)
-	target_link_libraries(pamilo_cli "${CDD_LIB}")
-endif()
 if(UNIX)
 	target_link_libraries(pamilo_cli pthread)
 	target_link_libraries(pamilo_cli dl)

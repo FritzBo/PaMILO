@@ -31,10 +31,6 @@ using TCLAP::SwitchArg;
 #include <pamilo/generic/benson_dual/ove_fp_v2.h>
 
 #include <config_autogen.h>
-#ifdef USE_CDD
-#include <pamilo/generic/benson_dual/ove_cdd.h>
-using pamilo::OnlineVertexEnumeratorCDD;
-#endif
 
 using pamilo::PilpDualBensonSolver;
 using pamilo::GraphlessOVE;
@@ -56,7 +52,7 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
 		SwitchArg no_preprocessing_argument("", "no-pre", "Don't run preprocessing. Only use this, if you know all objectives are in roughly the same range and either the lowest or the highest value in each objective is close to 0.", false);
 
-		ValueArg<string> ve_argument("E", "vertex-enumeration", "Which vertex enumeration algorithm is to be used. Options are: cdd, graphless, and auto (default)", false, "auto", "vertex-enumeration");
+		ValueArg<string> ve_argument("E", "vertex-enumeration", "Which vertex enumeration algorithm is to be used. Options are: graphless and auto (default)", false, "auto", "vertex-enumeration");
 
 		ValueArg<string> print_type_argument("p", "solution-print-type", "Which output format for the solution file is to be used. Options are: json (default) and polyscip", false, "json", "solution-print-type");
 
@@ -101,22 +97,8 @@ void PilpBensonModule::perform(int argc, char** argv) {
 
 		try {
 			parser.getILP(instance_name, ilp);
-
-#ifdef USE_CDD
-			if(ve == "cdd" || (ilp.dimension > 4 && ve == "auto")) {
-				PilpDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon, veEpsilon, sEpsilon);
-				solver.Solve(ilp);
-
-				solutions_.insert(solutions_.begin(),
-								  solver.solutions().cbegin(),
-								  solver.solutions().cend());
-			} else
-#endif
+            
 			{
-				if(ve == "cdd") {
-					std::cerr << "cdd is not activated in cmake!\n";
-					exit(0);
-				}
 				PilpDualBensonSolver<GraphlessOVE> solver(epsilon, veEpsilon, sEpsilon);
 				solver.Solve(ilp);
 
