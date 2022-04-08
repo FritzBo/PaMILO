@@ -80,6 +80,10 @@ void ILPSolverPrinter::operator()(std::pair<std::string, Point *> sol, bool isFi
     for (int i = 0; i < ilp_.dimension; i++)
     {
         pointScaled[i] = (point[i] / ilp_.relScale[i]) - ilp_.offset[i];
+        if (ilp_.sense_og == GRB_MAXIMIZE)
+        {
+            pointScaled *= -1;
+        }
     }
     if (ilp_.solPrintType == "polyscip")
     {
@@ -187,49 +191,29 @@ public:
             medianSpread = spread[(dim + zeroCnt) / 2];
         }
 
-        auto sense = ilp_.model->get(GRB_IntAttr_ModelSense);
-
         for (int i = 0; i < dim; i++)
         {
-            double offset = (sense == GRB_MAXIMIZE ? -maxi[i] : -mini[i]);
+            double offset = -mini[i];
             ilp_.offset[i] = offset;
             if (maxi[i] - mini[i] > 0 && medianSpread != 0)
             {
                 ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
             }
-            ilp_.relScale[i] *= sense;
         }
-
-        // IloNumExprArray objs(ilp_.env);
-        // IloNumArray weights(ilp_.env);
-        // IloIntArray prio(ilp_.env);
-        // IloNumArray absTols(ilp_.env);
-        // IloNumArray relTols(ilp_.env);
-
-        double weights[ilp_.dimension];
-        std::fill_n(weights, ilp_.dimension, 1);
-        int prio[ilp_.dimension];
-        std::fill_n(prio, ilp_.dimension, 0);
-        int absTol[ilp_.dimension];
-        std::fill_n(absTol, ilp_.dimension, 0);
-        int relTol[ilp_.dimension];
-        std::fill_n(relTol, ilp_.dimension, 0);
 
         for (int i = 0; i < ilp_.dimension; i++)
         {
-            auto newObj = ilp_.relScale[i] * ilp_.model->getObjective(i) + ilp_.offset[i];
-            ilp_.model->setObjectiveN(newObj, i);
-            ilp_.obj[i] = newObj;
-            ilp_.multiObj[i] = newObj;
+            ilp_.model->setObjectiveN(
+                ilp_.relScale[i] * (ilp_.model->getObjective(i) + ilp_.offset[i]), i);
         }
-
-        ilp_.model->set(GRB_IntAttr_ModelSense, GRB_MINIMIZE);
 
         ilp_.model->update();
 
-        ilp_.logFile << "preprocessed objectives: "
-                     << "TODO: Add output!"
-                     << "\n";  //<< ilp_.multiObj << "\n";
+        ilp_.logFile << "preprocessed objectives:\n";
+        for (int i = 0; i < ilp_.dimension; i++)
+        {
+            ilp_.logFile << "\t" << ilp_.model->getObjective(i) << "\n";
+        }
         ilp_.logFile << "preprocessing time: " << (clock() - start) / (double)CLOCKS_PER_SEC
                      << std::endl;
     }
@@ -301,9 +285,8 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
 
     for (int i = 0; i < ilp_.dimension; i++)
     {
-
         auto newObj = sense * ilp_.model->getObjective(i);
-        if(weighting[i] >= eps_)
+        if (weighting[i] >= eps_)
         {
             ilp_.model->setObjectiveN(newObj, i, 1, weighting[i]);
         }

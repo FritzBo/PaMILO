@@ -246,12 +246,12 @@ void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::Calculate_solutions(
         SolType sol;
         scalar_value = solver_(weighting, value, sol);
 
-        std::cout << "Val: " << scalar_value;
-        for(int i=0; i<dimension_; i++)
-        {
-            std::cout << " " << value[i];
-        } 
-        std::cout << std::endl;
+        // std::cout << "Val: " << scalar_value;
+        // for(int i=0; i<dimension_; i++)
+        // {
+        //     std::cout << " " << value[i];
+        // } 
+        // std::cout << std::endl;
 
 #ifndef NDEBUG
         std::cout << "scalar value: " << scalar_value << std::endl;

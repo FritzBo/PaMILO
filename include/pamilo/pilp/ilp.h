@@ -28,8 +28,7 @@ class ILP
 public:
     GRBEnv env;
     std::unique_ptr<GRBModel> model;
-    std::vector<GRBLinExpr> obj;
-    std::vector<GRBLinExpr> multiObj;
+    int sense_og;
     GRBVar* vars;
     int n_vars;
 

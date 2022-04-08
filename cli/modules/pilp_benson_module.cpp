@@ -94,11 +94,11 @@ void PilpBensonModule::perform(int argc, char **argv)
 
         ILP ilp;
 
-
-        // ToDo: Allow user to use more threads
         ilp.env.set(GRB_StringParam_LogFile, ilp.grbFileName);
         ilp.env.set(GRB_IntParam_LogToConsole, 0);
+        // ToDo: Allow user to use more threads
         ilp.env.set(GRB_IntParam_Threads, 1);
+        ilp.env.set(GRB_IntParam_NonConvex, 2);
 
         string instance_name = instance_name_argument.getValue();
         double epsilon = epsilon_argument.getValue();
@@ -125,7 +125,7 @@ void PilpBensonModule::perform(int argc, char **argv)
         }
         ilp.logFile.open(output_name + "_log");
         //ilp.cplexFile.open(output_name + "_cplex");
-        ilp.grbFileName = output_name + "_cplex";
+        ilp.grbFileName = output_name + "_gurobi";
         ilp.noPreprocessing = no_preprocessing;
 
         LPparser parser;
