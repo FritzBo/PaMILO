@@ -26,44 +26,28 @@ elseif(WIN32)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
 endif()
 
-## CPLEX
-find_path(CPLEX
-	NAMES cplex
-	PATHS "/usr/"
-		"/usr/local/"
-		"~/.local/"
-		"~/opt/local"
-		"/opt/ibm/ILOG/CPLEX_Studio129"
-		"/opt/ibm/ILOG/CPLEX_Studio1210"
-		"C:/Program Files/IBM/ILOG/CPLEX_Studio_Community1210"
-		"C:/Program Files/IBM/ILOG/CPLEX_Studio1210"
-		"C:/Program Files/IBM/ILOG/CPLEX_Studio129"
-)
+find_path(
+    GUROBI_INCLUDE_DIR
+    NAMES gurobi_c.h
+    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+    PATH_SUFFIXES include)
+  
+find_library(
+    GUROBI_LIB
+    NAMES gurobi gurobi81 gurobi90 gurobi95
+    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+    PATH_SUFFIXES lib)
 
-find_path(CPLEX_INCLUDE_DIR ilcplex/cplex.h
-	PATHS "${CPLEX}/cplex/include"
-)
-find_path(CONCERT_INCLUDE_DIR ilconcert/iloenv.h
-	PATHS "${CPLEX}/concert/include"
-)
-find_library(ILOCPLEX_LIB libilocplex.a
-	PATHS "${CPLEX}/cplex/lib/x86-64_linux/static_pic"
-		"${CPLEX}/cplex/lib/x64_windows_msvc14/stat_mda"
-)
-find_library(CONCERT_LIB libconcert.a
-	PATHS "${CPLEX}/concert/lib/x86-64_linux/static_pic"
-		"${CPLEX}/concert/lib/x64_windows_msvc14/stat_mda"
-)
-find_library(CPLEX_LIB libcplex.a
-	PATHS "${CPLEX}/cplex/lib/x86-64_linux/static_pic"
-		"${CPLEX}/cplex/lib/x64_windows_msvc14/stat_mda"
-)
+
+find_library(
+    GUROBI_CXX_LIB
+    NAMES gurobi_c++
+    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+    PATH_SUFFIXES lib)
 
 include_directories(include)
 include_directories(tclap)
-include_directories(${CPLEX_INCLUDE_DIR})
-include_directories(${CONCERT_INCLUDE_DIR})
-include_directories(${PROJECT_BINARY_DIR})
+include_directories(${GUROBI_INCLUDE_DIR})
 
 set(SOURCE_FILES
 
@@ -115,13 +99,9 @@ set(SOURCE_FILES
 add_executable(pamilo_cli ${SOURCE_FILES})
 
 target_link_libraries(pamilo_cli pamilo)
-target_link_libraries(pamilo_cli "${ILOCPLEX_LIB}")
-target_link_libraries(pamilo_cli "${CONCERT_LIB}")
-target_link_libraries(pamilo_cli "${CPLEX_LIB}")
+target_link_libraries(pamilo_cli ${GUROBI_CXX_LIB})
+target_link_libraries(pamilo_cli ${GUROBI_LIB})
 if(UNIX)
 	target_link_libraries(pamilo_cli pthread)
 	target_link_libraries(pamilo_cli dl)
 endif()
-
-# create autogen header
-configure_file("cmake/config_autogen.h.in" "${PROJECT_BINARY_DIR}/config_autogen.h")

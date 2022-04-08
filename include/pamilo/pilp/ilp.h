@@ -11,7 +11,9 @@
 
 #pragma once
 
-#include <ilcplex/ilocplex.h>
+#include <gurobi_c++.h>
+#include <fstream>
+#include <memory>
 
 #include <vector>
 
@@ -24,13 +26,12 @@
 class ILP
 {
 public:
-    IloEnv env;
-    IloModel model;
-    IloCplex cplex;
-    IloObjective obj;
-    IloObjective multiObj;
-    IloNumVarArray vars;
-    IloRangeArray cons;
+    GRBEnv env;
+    std::unique_ptr<GRBModel> model;
+    std::vector<GRBLinExpr> obj;
+    std::vector<GRBLinExpr> multiObj;
+    GRBVar* vars;
+    int n_vars;
 
     std::vector<double> relScale;
     std::vector<double> offset;
@@ -39,7 +40,7 @@ public:
     std::ofstream solFile;
     std::string solPrintType;
     std::ofstream logFile;
-    std::ofstream cplexFile;
+    std::string grbFileName;
     bool noPreprocessing;
 
     int startTime;
@@ -47,16 +48,14 @@ public:
     int dimension;
 
     ILP()
-        : model(env)
-        , cplex(env)
-        , vars(env)
-        , cons(env)
+        : model(nullptr)
+        , vars(nullptr)
+        , n_vars(-1)
         , dimension(-1)
         , filename("pilpInstance")
         , solFile("")
         , solPrintType("json")
         , logFile("")
-        , cplexFile("")
         , noPreprocessing(false)
         , startTime(-1)
     {
@@ -64,6 +63,5 @@ public:
 
     ~ILP()
     {
-        env.end();
     }
 };

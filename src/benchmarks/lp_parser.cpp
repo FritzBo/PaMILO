@@ -24,26 +24,32 @@ void LPparser::getILP(string filename, ILP &ilp)
 {
     try
     {
-        ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
-        ilp.multiObj = ilp.obj;
+        // ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
+        ilp.model = std::make_unique<GRBModel>(&ilp.env, filename);
+        ilp.dimension = ilp.model->get(GRB_IntAttr_NumObj);
+        ilp.obj = std::vector<GRBLinExpr>(ilp.dimension);
+        ilp.multiObj = std::vector<GRBLinExpr>(ilp.dimension);
+        for(int i=0; i<ilp.dimension; i++)
+        {
+            ilp.obj[i] = ilp.model->getObjective(i);
+            ilp.multiObj[i] = ilp.model->getObjective(i);
+        }
+        ilp.vars = ilp.model->getVars();
+        ilp.n_vars = ilp.model->get(GRB_IntAttr_NumVars);
     }
-    catch (IloException &e)
+    catch (GRBException &e)
     {
-        cerr << "CPLEX failed to read the file. This is likely, because the input file is "
-                "corrupted or is not a MOMIP\n";
+        cerr << "GUROBI failed to read the file with error " << e.getMessage() << std::endl;;
         exit(-1);
     }
-    ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
-    ilp.cplex.setParam(IloCplex::Param::ParamDisplay, 0);
-    ilp.cplex.setParam(IloCplex::Param::Threads, 1);
-    ilp.cplex.setOut(ilp.cplexFile);
+    // ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
+    // ilp.cplex.setParam(IloCplex::Param::ParamDisplay, 0);
 
-    ilp.dimension = ilp.multiObj.getNumCriteria();
 
     ilp.relScale.resize(ilp.dimension, 1);
     ilp.offset.resize(ilp.dimension, 0);
 
-    ilp.cplex.extract(ilp.model);
+    //ilp.cplex.extract(ilp.model);
 
     ilp.filename = filename;
 }
