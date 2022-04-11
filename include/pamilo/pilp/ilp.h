@@ -1,7 +1,6 @@
 /**
  * @file ilp.h
- * @author Fritz Bökler
- * @brief Mirko H. Wagner
+ * @author Fritz Bökler and Mirko H. Wagner and Levin Nemesch
  * @date 20.06.2020
  *
  * This file is distributed for academics only under the terms of an MIT license based license, a
@@ -19,8 +18,7 @@
 
 /**
  * @brief Class to store all information about an ILP problem in. This includes the
- * CPLEX model, file information and several more
- *
+ * Gurobi environment, model, file information and several more
  *
  */
 class ILP
@@ -29,7 +27,7 @@ public:
     GRBEnv env;
     std::unique_ptr<GRBModel> model;
     int sense_og;
-    GRBVar* vars;
+    std::unique_ptr<GRBVar[]> vars;
     int n_vars;
 
     std::vector<double> relScale;
@@ -55,6 +53,7 @@ public:
         , solFile("")
         , solPrintType("json")
         , logFile("")
+        , grbFileName("")
         , noPreprocessing(false)
         , startTime(-1)
     {

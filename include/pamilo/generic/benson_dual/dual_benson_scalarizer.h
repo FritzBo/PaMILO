@@ -246,13 +246,6 @@ void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::Calculate_solutions(
         SolType sol;
         scalar_value = solver_(weighting, value, sol);
 
-        // std::cout << "Val: " << scalar_value;
-        // for(int i=0; i<dimension_; i++)
-        // {
-        //     std::cout << " " << value[i];
-        // } 
-        // std::cout << std::endl;
-
 #ifndef NDEBUG
         std::cout << "scalar value: " << scalar_value << std::endl;
         std::cout << "value vector: " << value << std::endl;
@@ -307,6 +300,8 @@ void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::Calculate_solutions(
     std::cout << "Found " << facets_ << " nondominated value vectors in " << iteration_counter
               << " iterations." << std::endl;
     std::cout << "Where " << vertices_ << " weightings have been explored." << std::endl;
+#else
+    std::cout << "Found " << vertices_ << " non-dominated extreme points." << std::endl;
 #endif
 }
 

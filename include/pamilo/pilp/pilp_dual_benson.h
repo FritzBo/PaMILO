@@ -1,6 +1,6 @@
 /**
  * @file pilp_dual_benson.h
- * @author Fritz Bökler and Mirko H. Wagner
+ * @author Fritz Bökler and Mirko H. Wagner and Levin Nemesch
  * @brief
  * @date 28.05.20
  *
@@ -80,10 +80,10 @@ void ILPSolverPrinter::operator()(std::pair<std::string, Point *> sol, bool isFi
     for (int i = 0; i < ilp_.dimension; i++)
     {
         pointScaled[i] = (point[i] / ilp_.relScale[i]) - ilp_.offset[i];
-        if (ilp_.sense_og == GRB_MAXIMIZE)
-        {
-            pointScaled *= -1;
-        }
+    }
+    if (ilp_.sense_og == GRB_MAXIMIZE)
+    {
+        pointScaled *= -1;
     }
     if (ilp_.solPrintType == "polyscip")
     {
@@ -121,7 +121,7 @@ public:
      * @param ilp ILP object which contains the solver used in calculations
      * @param log The log object to which the values are added
      * @param eps Epsilon value for double comparison instead of 0.0
-     * @param solverEps Optional epsilon value used for CPLEX linearization. Ignored if -1
+     * @param solverEps Optional epsilon value used for Gurobi linearization. Ignored if -1
      */
     ILPSolverAdaptor(ILP &ilp, Log &log, double eps, double solverEps = -1)
         : ilp_(ilp)
@@ -265,17 +265,7 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
 {
     ilp_.logFile << "weighting " << weighting << std::endl;
 
-    // Initialising ciplex objects
-    // IloNumExprArray objs(ilp_.env);
-    // IloNumArray weights(ilp_.env);
-    // IloIntArray prio(ilp_.env);
-    // IloNumArray absTols(ilp_.env);
-    // IloNumArray relTols(ilp_.env);
-    // IloNumExpr singleObj(ilp_.env);
-
     GRBLinExpr singleObj;
-
-    // auto sense = ilp_.multiObj.getSense();
 
     // Checks for zero values in weights. If one is found, solver needs to use lexicographic
     // ordering
@@ -288,11 +278,11 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
         auto newObj = sense * ilp_.model->getObjective(i);
         if (weighting[i] >= eps_)
         {
-            ilp_.model->setObjectiveN(newObj, i, 1, weighting[i]);
+            ilp_.model->setObjectiveN(newObj, i, 1, weighting[i], 0, 0);
         }
         else
         {
-            ilp_.model->setObjectiveN(newObj, i, 0, 1);
+            ilp_.model->setObjectiveN(newObj, i, 0, 1, 0, 0);
         }
 
         singleObj += newObj * weighting[i];
@@ -306,9 +296,6 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
     clock_t start = clock();
 
     ilp_.model->optimize();
-
-    // Needed?
-    // model.set(GRB_IntParam_SolutionNumber, 0);
 
     log_.solver_time += (clock() - start) / double(CLOCKS_PER_SEC);
     log_.nSolves++;
@@ -368,6 +355,13 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
                 sol += std::to_string(val);
             }
         }
+
+        // Todo: Test warm start for MIPs
+        // Experimental: Enables warm start, if one solution is known
+        // if (ilp_.model->get(GRB_IntAttr_IsMIP))
+        // {
+        //     ilp_.vars[i].set(GRB_DoubleAttr_Start, ilp_.vars[i].get(GRB_DoubleAttr_X));
+        // }
     }
     sol += "\n";
     if (ilp_.solPrintType == "json")
@@ -427,8 +421,8 @@ inline void PilpDualBensonSolver<OnlineVertexEnumerator>::Solve(ILP &ilp)
     ilp.logFile << "time: " << (clock() - start) / (double)CLOCKS_PER_SEC << "\n";
     ilp.logFile << "vertex enumeration time: " << dual_benson_solver.vertex_enumeration_time()
                 << "\n";
-    ilp.logFile << "cplex time: " << log.solver_time << "\n";
-    ilp.logFile << "cplex solves: " << log.nSolves << "\n";
+    ilp.logFile << "gurobi time: " << log.solver_time << "\n";
+    ilp.logFile << "gurobi solves: " << log.nSolves << "\n";
     ilp.logFile << "time per solve: " << log.solver_time / log.nSolves << "\n";
 }
 }  // namespace pamilo

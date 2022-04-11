@@ -1,6 +1,6 @@
 /**
  * @file pilp_benson_module.cpp
- * @author Fritz Bökler and Mirko H. Wagner
+ * @author Fritz Bökler and Mirko H. Wagner and Levin Nemesch
  * @brief
  * @date 28.05.2020
  *
@@ -60,6 +60,10 @@ void PilpBensonModule::perform(int argc, char **argv)
             "Epsilon to be used in floating point calculations of the vertex enumerator. This "
             "defaults to -1 (use default epsilon of vertex enumerator).",
             false, -1, "vertex-enumerator-epsilon");
+        ValueArg<int> solver_threads_limit(
+            "t", "solver-thread-limit",
+            "Maximum number of threads the solver is allowed to use. This defaults to 1.", false, 1,
+            "solver-thread-limit");
 
         UnlabeledValueArg<string> instance_name_argument("instance", "Name of the instance file.",
                                                          true, "", "instance");
@@ -85,6 +89,7 @@ void PilpBensonModule::perform(int argc, char **argv)
         cmd.add(epsilon_argument);
         cmd.add(solver_epsilon_argument);
         cmd.add(vertex_enumerator_epsilon_argument);
+        cmd.add(solver_threads_limit);
         cmd.add(instance_name_argument);
         cmd.add(no_preprocessing_argument);
         cmd.add(ve_argument);
@@ -94,10 +99,9 @@ void PilpBensonModule::perform(int argc, char **argv)
 
         ILP ilp;
 
-        ilp.env.set(GRB_StringParam_LogFile, ilp.grbFileName);
         ilp.env.set(GRB_IntParam_LogToConsole, 0);
-        // ToDo: Allow user to use more threads
-        ilp.env.set(GRB_IntParam_Threads, 1);
+        ilp.env.set(GRB_IntParam_Threads,
+                    solver_threads_limit.getValue() <= 1 ? 1 : solver_threads_limit.getValue());
         ilp.env.set(GRB_IntParam_NonConvex, 2);
 
         string instance_name = instance_name_argument.getValue();
@@ -124,7 +128,10 @@ void PilpBensonModule::perform(int argc, char **argv)
             ilp.solFile << "{\n\t\"solutions\": [";
         }
         ilp.logFile.open(output_name + "_log");
-        //ilp.cplexFile.open(output_name + "_cplex");
+        // Gurobi appends its logs, so we have to clean up before starting:
+        std::ofstream tmpCleaner;
+        tmpCleaner.open(output_name + "_gurobi");
+        tmpCleaner.close();
         ilp.grbFileName = output_name + "_gurobi";
         ilp.noPreprocessing = no_preprocessing;
 
@@ -148,7 +155,7 @@ void PilpBensonModule::perform(int argc, char **argv)
         }
         if (ilp.solPrintType == "json")
         {
-            ilp.solFile << "\n\t]\n}\n";
+            ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions_.size() << "\n}\n";
         }
         ilp.solFile.close();
         ilp.logFile.close();
