@@ -184,20 +184,31 @@ public:
             zeroCnt += (spread[i] == 0 ? 1 : 0);
         }
 
-        double medianSpread = 0;
-        if (zeroCnt < dim)
-        {
-            std::nth_element(spread.begin(), spread.begin() + (dim + zeroCnt) / 2, spread.end());
-            medianSpread = spread[(dim + zeroCnt) / 2];
-        }
+        //todo roll back or delete
+        // double medianSpread = 0;
+        // if (zeroCnt < dim)
+        // {
+        //     std::nth_element(spread.begin(), spread.begin() + (dim + zeroCnt) / 2, spread.end());
+        //     medianSpread = spread[(dim + zeroCnt) / 2];
+        // }
+
+        // for (int i = 0; i < dim; i++)
+        // {
+        //     double offset = -mini[i];
+        //     ilp_.offset[i] = offset;
+        //     if (maxi[i] - mini[i] > 0 && medianSpread != 0)
+        //     {
+        //         ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
+        //     }
+        // }
 
         for (int i = 0; i < dim; i++)
         {
             double offset = -mini[i];
             ilp_.offset[i] = offset;
-            if (maxi[i] - mini[i] > 0 && medianSpread != 0)
+            if (maxi[i] - mini[i] > 0)
             {
-                ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
+                ilp_.relScale[i] = exp2(round(log2(1 / (maxi[i] - mini[i]))));
             }
         }
 
@@ -233,8 +244,17 @@ template <typename OnlineVertexEnumerator>
 class PilpDualBensonSolver : public AbstractSolver<std::string>
 {
 public:
-    PilpDualBensonSolver(double epsilon = 1E-7, double veEps = -1, double solverEps = -1)
+    /**
+     * @brief Construct a new Pilp Dual Benson Solver object
+     * 
+     * @param epsilon 
+     * @param pEps 
+     * @param veEps 
+     * @param solverEps 
+     */
+    PilpDualBensonSolver(double epsilon = 1E-7, double pEps = 1E-5, double veEps = -1, double solverEps = -1)
         : epsilon_(epsilon)
+        , pEps_(pEps)
         , veEps_(veEps)
         , solverEps_(solverEps)
     {
@@ -249,6 +269,7 @@ public:
 
 private:
     double epsilon_;
+    double pEps_;
     double veEps_;
     double solverEps_;
 };
@@ -264,28 +285,20 @@ private:
 inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value, std::string &sol)
 {
     ilp_.logFile << "weighting " << weighting << std::endl;
-
-    GRBLinExpr singleObj;
-
-    // Checks for zero values in weights. If one is found, solver needs to use lexicographic
-    // ordering
-    bool hasZeroWeight = false;
-
-    auto sense = ilp_.model->get(GRB_IntAttr_ModelSense);
-
+    
     for (int i = 0; i < ilp_.dimension; i++)
     {
-        auto newObj = sense * ilp_.model->getObjective(i);
+        ilp_.model->set(GRB_IntParam_ObjNumber, i);
         if (weighting[i] >= eps_)
         {
-            ilp_.model->setObjectiveN(newObj, i, 1, weighting[i], 0, 0);
+            ilp_.model->set(GRB_DoubleAttr_ObjNWeight, weighting[i]);
+            ilp_.model->set(GRB_IntAttr_ObjNPriority, 1);
         }
         else
         {
-            ilp_.model->setObjectiveN(newObj, i, 0, 1, 0, 0);
+            ilp_.model->set(GRB_DoubleAttr_ObjNWeight, 1);
+            ilp_.model->set(GRB_IntAttr_ObjNPriority, 0);
         }
-
-        singleObj += newObj * weighting[i];
     }
 
     ilp_.model->set(GRB_IntAttr_ModelSense, GRB_MINIMIZE);
@@ -369,7 +382,22 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
         sol += "\t\t\t}";
     }
 
-    return singleObj.getValue();
+    // todo
+    // std::cout << std::setprecision(std::numeric_limits<double>::digits10) << "MaxVio: " << ilp_.model->get(GRB_DoubleAttr_MaxVio) << "\tCon: " << ilp_.model->get(GRB_DoubleAttr_ConstrVio) << "\tBound: " << ilp_.model->get(GRB_DoubleAttr_BoundVio) << "\tInt: " << ilp_.model->get(GRB_DoubleAttr_IntVio) << "\n";
+
+    double scalar{0.0};
+    
+    for (int i = 0; i < ilp_.dimension; i++)
+    {
+        if (weighting[i] >= eps_)
+        {
+            scalar += weighting[i] * ilp_.model->getObjective(i).getValue();
+        }
+    }
+
+    return scalar;
+
+    //return singleObj.getValue();
 }
 
 template <typename OnlineVertexEnumerator>
@@ -378,12 +406,12 @@ inline void PilpDualBensonSolver<OnlineVertexEnumerator>::Solve(ILP &ilp)
     clock_t start = clock();
     ilp.startTime = start;
 
-    std::list<std::pair<std::string, Point *>> frontier;
+    std::vector<std::pair<std::string, Point *>> frontier;
     Log log;
 
     DualBensonScalarizer<OnlineVertexEnumerator, std::string> dual_benson_solver(
         ILPSolverAdaptor(ilp, log, epsilon_, solverEps_), ILPSolverPrinter(ilp), ilp.dimension,
-        epsilon_, veEps_);
+        epsilon_, pEps_, veEps_);
 
     dual_benson_solver.Calculate_solutions(frontier);
 

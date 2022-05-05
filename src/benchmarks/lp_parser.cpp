@@ -30,6 +30,14 @@ void LPparser::getILP(string filename, ILP &ilp)
         ilp.vars = std::unique_ptr<GRBVar[]>(ilp.model->getVars());
         ilp.n_vars = ilp.model->get(GRB_IntAttr_NumVars);
 
+        // Overwrite tolerances from lp file to 0 (which is gurobi's default value here)
+        for (int i = 0; i < ilp.dimension; i++)
+        {
+            ilp.model->set(GRB_DoubleAttr_ObjNRelTol, 0);
+            ilp.model->set(GRB_DoubleAttr_ObjNAbsTol, 0);
+        }
+
+        // Always minimizing internally
         ilp.sense_og = ilp.model->get(GRB_IntAttr_ModelSense);
         if (ilp.sense_og == GRB_MAXIMIZE)
         {

@@ -16,9 +16,12 @@
 #pragma once
 
 #include <functional>
-#include <list>
+#include <vector>
 
 #include <pamilo/basic/point.h>
+
+// todo: delete this include
+// #include <iomanip>
 
 namespace pamilo {
 
@@ -47,9 +50,10 @@ public:
     DualBensonScalarizer(
         std::function<double(const Point &weighting, Point &value, SolType &sol)> solver,
         std::function<void(std::pair<SolType, Point *>, bool)> printSol, unsigned int dimension,
-        double epsilon, double veEpsilon)
+        double epsilon, double pEpsilon, double veEpsilon)
         : dimension_(dimension)
         , epsilon_(epsilon)
+        , pEpsilon_(pEpsilon)
         , veEpsilon_(veEpsilon)
         , solver_(solver)
         , printSol_(printSol)
@@ -81,9 +85,9 @@ public:
      * Additionally, every solutions is input into the callable object printSol given to the
      * constructor.
      *
-     * @param solutions list of pairs onto which all solutions are added
+     * @param solutions array of pairs onto which all solutions are added
      */
-    void Calculate_solutions(std::list<std::pair<SolType, Point *>> &solutions);
+    void Calculate_solutions(std::vector<std::pair<SolType, Point *>> &solutions);
 
     /**
      * @brief Returns cpu time used for vertex enumeration since instantiation of this object
@@ -124,6 +128,13 @@ protected:
      *
      */
     double epsilon_;
+
+    /**
+     * @brief epsilon value for euclidean distances of points comparisons
+     *
+     */
+    double pEpsilon_;
+
     /**
      * @brief epsilon value for floating points comparisons in vertex enumeration
      *
@@ -170,7 +181,7 @@ private:
 
 template <typename OnlineVertexEnumerator, typename SolType>
 void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::Calculate_solutions(
-    std::list<std::pair<SolType, Point *>> &solutions)
+    std::vector<std::pair<SolType, Point *>> &solutions)
 {
     vertices_ = 1;
     int iteration_counter = 0;
@@ -243,8 +254,23 @@ void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::Calculate_solutions(
         std::cout << "weighting: " << weighting << std::endl;
 #endif
 
+        // todo delete
+        //  std::cout << std::setprecision(std::numeric_limits<double>::digits10) << "\nWeighting: "
+        //  << weighting << "\tScalar: " << candidate->operator[](dimension_-1) << "\n";
+
         SolType sol;
         scalar_value = solver_(weighting, value, sol);
+
+        bool nextToExisting = false;
+        if (pEpsilon_ > 0)
+        {
+            nextToExisting =
+                (std::find_if(solutions.begin(), solutions.end(),
+                              [value, this](const std::pair<SolType, Point *> &s) {
+                                  Point dif = *(s.second) - value;
+                                  return sqrt(dif * dif) <= this->pEpsilon_;
+                              }) != solutions.end());
+        }
 
 #ifndef NDEBUG
         std::cout << "scalar value: " << scalar_value << std::endl;
@@ -269,13 +295,17 @@ void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::Calculate_solutions(
         }
         inequality[dimension_ - 1] = -1;
 
-        if (scalar_value - (*candidate)[dimension_ - 1] > -epsilon_
+        if (scalar_value - (*candidate)[dimension_ - 1] > -epsilon_ || nextToExisting
 #ifdef DMEAS
             || vertex_container->getDistance(*candidate, inequality, -value[dimension_ - 1]) >
                    -epsilon_
 #endif
         )
         {
+            // todo delete
+            //  std::cout << std::setprecision(std::numeric_limits<double>::digits10) << "Facet
+            //  verified\tScalar " << scalar_value << "\tDif: " << scalar_value -
+            //  (*candidate)[dimension_ - 1]  << std::endl;
             facets_++;
 #ifndef NDEBUG
             std::cout << "found a new permanent extreme point. continuing." << std::endl;
@@ -283,6 +313,17 @@ void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::Calculate_solutions(
         }
         else
         {
+            // todo delete
+            //  std::cout << std::setprecision(std::numeric_limits<double>::digits10) <<  "Point: "
+            //  << value << "\tScalar: " << scalar_value << "\tDif: " << scalar_value -
+            //  (*candidate)[dimension_ - 1] << std::endl;
+
+            // todo delete
+            // if (nextToExisting) {
+            //     std::cout << "Prune" << std::endl;
+            // }
+            // std::cout << value << std::endl;
+
             clock_t start = clock();
             vertex_container->add_hyperplane(*candidate, inequality, -value[dimension_ - 1]);
             ve_time += (clock() - start) / (double)CLOCKS_PER_SEC;
