@@ -51,6 +51,14 @@ void PilpBensonModule::perform(int argc, char **argv)
         ValueArg<double> epsilon_argument("e", "epsilon",
                                           "Epsilon to be used in floating point calculations.",
                                           false, 1E-7, "epsilon");
+
+        ValueArg<double> point_epsilon_argument(
+            "p", "point-epsilon",
+            "Epsilon to decide if a potential new extreme point is already represented by an old "
+            "one via euclidean distance. A value < 0 deactivates point pruning. Deacticvated by "
+            "default",
+            false, -1, "point-epsilon");
+
         ValueArg<double> solver_epsilon_argument(
             "s", "solver-epsilon",
             "Epsilon to be used in floating point calculations of the solver. This defaults to -1 "
@@ -73,23 +81,18 @@ void PilpBensonModule::perform(int argc, char **argv)
             "0.",
             false);
 
-        ValueArg<string> ve_argument("E", "vertex-enumeration",
-                                     "Which vertex enumeration algorithm is to be used. Options "
-                                     "are: graphless and auto (default)",
-                                     false, "auto", "vertex-enumeration");
-
-        ValueArg<string> print_type_argument("p", "solution-print-type",
+        ValueArg<string> print_type_argument("f", "solution-print-type",
                                              "Which output format for the solution file is to be "
                                              "used. Options are: json (default) and polyscip",
                                              false, "json", "solution-print-type");
 
         cmd.add(output_name_argument);
         cmd.add(epsilon_argument);
+        cmd.add(point_epsilon_argument);
         cmd.add(solver_epsilon_argument);
         cmd.add(vertex_enumerator_epsilon_argument);
         cmd.add(instance_name_argument);
         cmd.add(no_preprocessing_argument);
-        cmd.add(ve_argument);
         cmd.add(print_type_argument);
 
         cmd.parse(argc, argv);
@@ -98,6 +101,7 @@ void PilpBensonModule::perform(int argc, char **argv)
 
         string instance_name = instance_name_argument.getValue();
         double epsilon = epsilon_argument.getValue();
+        double pEpsilon = point_epsilon_argument.getValue();
         double sEpsilon = solver_epsilon_argument.getValue();
         double veEpsilon = vertex_enumerator_epsilon_argument.getValue();
         if (veEpsilon = -1)
@@ -106,7 +110,6 @@ void PilpBensonModule::perform(int argc, char **argv)
         }
         string output_name = output_name_argument.getValue();
         bool no_preprocessing = no_preprocessing_argument.getValue();
-        string ve = ve_argument.getValue();
         string solPrintType = print_type_argument.getValue();
 
         if (output_name == "")
@@ -130,7 +133,7 @@ void PilpBensonModule::perform(int argc, char **argv)
             parser.getILP(instance_name, ilp);
 
             {
-                PilpDualBensonSolver<GraphlessOVE> solver(epsilon, veEpsilon, sEpsilon);
+                PilpDualBensonSolver<GraphlessOVE> solver(epsilon, pEpsilon, veEpsilon, sEpsilon);
                 solver.Solve(ilp);
 
                 solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
@@ -143,7 +146,7 @@ void PilpBensonModule::perform(int argc, char **argv)
         }
         if (ilp.solPrintType == "json")
         {
-            ilp.solFile << "\n\t]\n}\n";
+            ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions_.size() << "\n}\n";
         }
         ilp.solFile.close();
         ilp.logFile.close();
