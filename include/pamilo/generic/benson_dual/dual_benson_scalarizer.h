@@ -45,6 +45,7 @@ public:
      * (for example ILPSolverPrinter)
      * @param dimension dimension of objective space
      * @param epsilon epsilon value for floating point comparisons
+     * @param pepsilon epsilon value for point equality comparisons
      * @param veEpsilon epsilon value for floating points comparisons in vertex enumeration
      */
     DualBensonScalarizer(

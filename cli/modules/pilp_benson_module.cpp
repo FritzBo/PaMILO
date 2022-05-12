@@ -97,6 +97,7 @@ void PilpBensonModule::perform(int argc, char **argv)
 
         cmd.add(output_name_argument);
         cmd.add(epsilon_argument);
+        cmd.add(point_epsilon_argument);
         cmd.add(solver_epsilon_argument);
         cmd.add(vertex_enumerator_epsilon_argument);
         cmd.add(solver_threads_limit);
