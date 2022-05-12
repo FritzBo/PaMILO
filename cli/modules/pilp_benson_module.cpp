@@ -53,7 +53,8 @@ void PilpBensonModule::perform(int argc, char **argv)
         ValueArg<double> point_epsilon_argument(
             "p", "point-epsilon",
             "Epsilon to decide if a potential new extreme point is already represented by an old "
-            "one via euclidean distance. A value < 0 deactivates point pruning. Deacticvated by default",
+            "one via euclidean distance. A value < 0 deactivates point pruning. Deacticvated by "
+            "default",
             false, -1, "point-epsilon");
 
         ValueArg<double> solver_epsilon_argument(
@@ -83,10 +84,11 @@ void PilpBensonModule::perform(int argc, char **argv)
             "0.",
             false);
 
-        ValueArg<string> ve_argument("E", "vertex-enumeration",
-                                     "Which vertex enumeration algorithm is to be used. Options "
-                                     "are: graphless and auto (default)",
-                                     false, "auto", "vertex-enumeration");
+        SwitchArg non_convex_argument(
+            "", "non-con",
+            "Allows Gurobi to also attempt solving non-convex quadratic problems. By default this "
+            "is off. Non-convex problems might have especially high runtime.",
+            false);
 
         ValueArg<string> print_type_argument("f", "solution-print-type",
                                              "Which output format for the solution file is to be "
@@ -95,13 +97,12 @@ void PilpBensonModule::perform(int argc, char **argv)
 
         cmd.add(output_name_argument);
         cmd.add(epsilon_argument);
-        cmd.add(point_epsilon_argument);
         cmd.add(solver_epsilon_argument);
         cmd.add(vertex_enumerator_epsilon_argument);
         cmd.add(solver_threads_limit);
         cmd.add(instance_name_argument);
         cmd.add(no_preprocessing_argument);
-        cmd.add(ve_argument);
+        cmd.add(non_convex_argument);
         cmd.add(print_type_argument);
 
         cmd.parse(argc, argv);
@@ -111,7 +112,10 @@ void PilpBensonModule::perform(int argc, char **argv)
         ilp.env.set(GRB_IntParam_LogToConsole, 0);
         ilp.env.set(GRB_IntParam_Threads,
                     solver_threads_limit.getValue() <= 1 ? 1 : solver_threads_limit.getValue());
-        ilp.env.set(GRB_IntParam_NonConvex, 2);
+        
+        if (non_convex_argument.getValue()) {
+            ilp.env.set(GRB_IntParam_NonConvex, 2);
+        }
 
         string instance_name = instance_name_argument.getValue();
         double epsilon = epsilon_argument.getValue();
@@ -124,7 +128,6 @@ void PilpBensonModule::perform(int argc, char **argv)
         }
         string output_name = output_name_argument.getValue();
         bool no_preprocessing = no_preprocessing_argument.getValue();
-        string ve = ve_argument.getValue();
         string solPrintType = print_type_argument.getValue();
 
         if (output_name == "")
@@ -161,7 +164,7 @@ void PilpBensonModule::perform(int argc, char **argv)
         }
         catch (GRBException &e)
         {
-            std::cerr << e.getMessage();
+            std::cerr << "Gurobi Exception:\n" << e.getMessage() << std::endl;
         }
         if (ilp.solPrintType == "json")
         {
