@@ -262,14 +262,13 @@ void DualBensonScalarizer<OnlineVertexEnumerator, SolType>::Calculate_solutions(
         scalar_value = solver_(weighting, value, sol);
 
         bool nextToExisting = false;
-        if (pEpsilon_ > 0)
+        if (pEpsilon_ >= 0)
         {
-            nextToExisting =
-                (std::find_if(solutions.begin(), solutions.end(),
-                              [value, this](const std::pair<SolType, Point *> &s) {
-                                  Point dif = *(s.second) - value;
-                                  return sqrt(dif * dif) <= this->pEpsilon_;
-                              }) != solutions.end());
+            nextToExisting = (std::find_if(solutions.begin(), solutions.end(),
+                                           [value, this](const std::pair<SolType, Point *> &s) {
+                                               Point dif = *(s.second) - value;
+                                               return sqrt(dif * dif) <= this->pEpsilon_;
+                                           }) != solutions.end());
         }
 
 #ifndef NDEBUG

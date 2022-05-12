@@ -208,7 +208,7 @@ public:
             ilp_.offset[i] = offset;
             if (maxi[i] - mini[i] > 0)
             {
-                ilp_.relScale[i] = exp2(round(log2(1 / (maxi[i] - mini[i]))));
+                ilp_.relScale[i] = exp2(round(log2(1.0 / (maxi[i] - mini[i]))));
             }
         }
 
@@ -252,7 +252,7 @@ public:
      * @param veEps 
      * @param solverEps 
      */
-    PilpDualBensonSolver(double epsilon = 1E-7, double pEps = 1E-5, double veEps = -1, double solverEps = -1)
+    PilpDualBensonSolver(double epsilon = 1E-6, double pEps = -1, double veEps = -1, double solverEps = -1)
         : epsilon_(epsilon)
         , pEps_(pEps)
         , veEps_(veEps)

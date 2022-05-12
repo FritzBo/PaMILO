@@ -48,13 +48,13 @@ void PilpBensonModule::perform(int argc, char **argv)
 
         ValueArg<double> epsilon_argument("e", "epsilon",
                                           "Epsilon to be used in floating point calculations.",
-                                          false, 1E-7, "epsilon");
+                                          false, 1E-6, "epsilon");
 
         ValueArg<double> point_epsilon_argument(
             "p", "point-epsilon",
             "Epsilon to decide if a potential new extreme point is already represented by an old "
-            "one via euclidean distance. A value <= 0 deactivates point pruning. Defaults to 1E-5",
-            false, 1E-5, "point-epsilon");
+            "one via euclidean distance. A value < 0 deactivates point pruning. Deacticvated by default",
+            false, -1, "point-epsilon");
 
         ValueArg<double> solver_epsilon_argument(
             "s", "solver-epsilon",
