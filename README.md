@@ -1,6 +1,5 @@
-# PILP-Solver
-Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric 
-MILP or MIQP.
+# PaMILO
+Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric MILP or MIQP.
 
 These problems are also known as Multi-Objective Mixed Integer Linear Programs (MOMILPs) and 
 Multi-Objective Mixed Integer Quadratic Programs (MOMIQPs).
