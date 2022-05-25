@@ -1,4 +1,4 @@
-# PILP-Solver
+# PaMILO
 Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric 
 MILP or MIQP.
 
