@@ -22,20 +22,20 @@ enable_testing()
 find_path(
     GUROBI_INCLUDE_DIR
     NAMES gurobi_c.h
-    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+    HINTS $ENV{GUROBI_HOME}
     PATH_SUFFIXES include)
   
 find_library(
     GUROBI_LIB
     NAMES gurobi gurobi81 gurobi90 gurobi95
-    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+    HINTS $ENV{GUROBI_HOME}
     PATH_SUFFIXES lib)
 
 
 find_library(
     GUROBI_CXX_LIB
     NAMES gurobi_c++
-    HINTS ${GUROBI_DIR} $ENV{GUROBI_HOME}
+    HINTS $ENV{GUROBI_HOME}
     PATH_SUFFIXES lib)
 
 include_directories(include)

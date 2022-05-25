@@ -1,5 +1,9 @@
 # PILP-Solver
-Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric MILP in incremental polynomial time.
+Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric 
+MILP or MIQP in incremental polynomial time.
+
+These problems are also known as Multi-Objective Mixed Integer Linear Programs (MOMILPs) and 
+Multi-Objective Mixed Integer Quadratic Programs (MOMIQPs).
 
 The only assumption on the input instances is that an ideal point exists.
 
@@ -7,7 +11,8 @@ The implementation is based on the paper:
 
 Bökler, Fritz and Mutzel, Petra: Output-Sensitive Algorithms for Enumerating the Extreme Nondominated Points of Multiobjective Combinatorial Optimization Problems, Algorithms-ESA, LNCS 9294, Springer, DOI 10.1007/978-3-662-48350-3_25, 2015.
 
-For support please contact Mirko H. Wagner (mirwagner@uos.de), Levin Nemesch (lnemesch@uos.de) or Fritz Bökler (fboekler@uos.de).
+For support please contact Mirko H. Wagner (mirwagner@uos.de), Levin Nemesch (lnemesch@uos.de),
+ or Fritz Bökler (fboekler@uos.de).
 
 # Installation
 ## UNIX/Linux
@@ -37,11 +42,12 @@ usage see below).
 Version 3.18 or higher is needed.
 
 ## GUROBI
-Version 8.0 or higher is needed, as we rely on the multiobjective optimization
-features introduced in 8.1.
+Version 8.0 or higher is needed, as we rely on the multi-objective optimization
+features introduced in 8.0.
 
 
-If CPLEX is installed in a default location (`/opt/ibm/ILOG/CPLEX_Studio12<9+>` or `C:\Program Files\IBM\ILOG\CPLEX_Studio12<9+>`), it should be found automaticly. If it is installed in such a way that the directories `<path to cplex>/concert` and `<path to cplex>/cplex` are present you can set CPLEX to the `<path to cplex>`. Otherwise you have to set `CONCERT_INCLUDE_DIR` and `CPLEX_INCLUDE_DIR` to the directories containing `ilconcert/iloenv.h` and `ilcplex/ilocplex.h` respectively and `CONCERT_LIB`, `CPLEX_LIB`, and `ILOCPLEX_LIB` to the corresponding static libraries. Furthermore, on UNIX `CPLEX` needs the libraries `dl` and `pthread`.
+If the environment variable `GUROBI_HOME` is set (and correctly points to your Gurobi installation), Gurobi should be found automatically.
+Otherwise you have to set `GUROBI_CXX_LIB` and `GUROBI_LIB` to the libraries `libgurobi_c++.a` and `libgurobi95.so` respectively and `GUROBI_INCLUDE_DIR` to the include directory.
 
 ## Usage
 `<pamilo_cli> [<parameters>] <instance>`
@@ -49,9 +55,7 @@ If CPLEX is installed in a default location (`/opt/ibm/ILOG/CPLEX_Studio12<9+>` 
 
 with ` <pamilo_cli> = ./pamilo_cli` on Linux/UNIX and `<pamilo_cli> = Release\pamilo_cli.exe` on Windows.
 
-
 Important optional parameters are:
-
 
 `-o <output>` The basename for all output files. This defaults to `<instance>`
 on UNIX and an empty string on Windows.
@@ -62,10 +66,13 @@ on UNIX and an empty string on Windows.
 
 `<pamilo_cli> -h` shows all available parameters.
 
+
+For a list of all parameters with short explanations, use `<pamilo_cli> -h`.
+
 ## Instance format
 The format of an instance needs to be supported by Gurobi. ([Supported formats](https://www.gurobi.com/documentation/9.5/refman/model_file_formats.html)).
-All multiobjective parameters (Priority, Weight, AbsTol, and RelTol) are ignored.
-For some formats (for example lp) the parser still needs the fields, just insert some dummy values in this case.
+All multi-objective parameters (Priority, Weight, AbsTol, and RelTol) are overwritten by PaMILO.
+In some formats (for example lp) the parser still needs those fields, just insert some dummy values in this case.
 If the demand is there, this could be changed so that tolerances are taken into account.
 
 
