@@ -435,8 +435,9 @@ inline void CmdLine::parse(int argc, const char * const * argv)
 		// this step is necessary so that we have easy access to
 		// mutable strings.
 		std::vector<std::string> args;
-		for (int i = 0; i < argc; i++)
+		for (int i = 0; i < argc; i++) {
 			args.push_back(argv[i]);
+		}
 
 		parse(args);
 }
