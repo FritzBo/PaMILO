@@ -1,7 +1,9 @@
 # PaMILO
+## Parametric Mixed Integer Linear Optimization
+
 Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric MILP or MIQP.
 
-These problems are also known as Multi-Objective Mixed Integer Linear Programs (MOMILPs) and 
+These problems are also known as Multi-Objective Mixed Integer Linear Programs (MOMILPs) and
 Multi-Objective Mixed Integer Quadratic Programs (MOMIQPs).
 
 The only assumption on the input instances is that an ideal point exists.
@@ -83,12 +85,12 @@ A list of all extreme points is printed to the command line. Every line is one
 point, where the coordinates are separated by spaces. The last line is the total number of extreme points found.
 `<output>_log` logs the running time, the vertex enumeration time and the time
 that Gurobi took. If you want anything else to be logged, let us know.
-`<output>_sol` stores all extreme points with their corresponding variable assignment. 
+`<output>_sol` stores all extreme points with their corresponding variable assignment.
 The format is json, every solution is stored as an object in an array, with one solution looking like:
 ```
 { "values" : [ <obj1>, <obj2>, ... ], "variables : { "<var1>":<val1>, "<var2>":<val2>, ... } }
 ```
-The `variables` object stores only variables with a value other than 0. 
+The `variables` object stores only variables with a value other than 0.
 Additionally, a single field `solutionCount` at the end shows the number of extreme points found.
 
 If you prefer any other solution format let us know.
