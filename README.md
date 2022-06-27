@@ -1,6 +1,8 @@
 # PaMILO
 ## Parametric Mixed Integer Linear Optimization
 
+(This is the Gurobi version, switch branch for CPLEX.)
+
 Implementation of the dual Benson algorithm to computes the breakpoints (and facets) of a parametric MILP or MIQP.
 
 These problems are also known as Multi-Objective Mixed Integer Linear Programs (MOMILPs) and
@@ -32,7 +34,7 @@ can be made more eﬀicient or the descriptions more precise.
 
  - Unzip pamilo.zip and go into the directory it is unzipped into.
  - Run `<path to cmake>\cmake.exe .` . If you have a standard installation of CPLEX this should suﬀice, but sometimes it does not. Refer to
-the CMake section below.
+the Gurobi section below.
 
  - Start Visual Studio and build pamilo_cli in Release mode.
  - Go to `<path to pamilo>\Release` and run `pamilo_cli.exe` (for detailed
@@ -42,7 +44,7 @@ usage see below).
 ## CMake
 Version 3.18 or higher is needed.
 
-## GUROBI
+## Gurobi
 Version 8.0 or higher is needed, as we rely on the multi-objective optimization
 features introduced in 8.0.
 
