@@ -31,16 +31,39 @@ find_library(
     HINTS $ENV{GUROBI_HOME}
     PATH_SUFFIXES lib)
 
-
 find_library(
     GUROBI_CXX_LIB
     NAMES gurobi_c++
     HINTS $ENV{GUROBI_HOME}
     PATH_SUFFIXES lib)
 
+## CDD ##
+option(USE_CDD "Whether to use cdd for vertex enumeration" OFF)
+if(USE_CDD)
+	find_path(CDD_INCLUDE_PATH
+		NAMES cdd.h
+		PATHS 	"/usr/include/cddlib"
+				"/usr/local/include/cddlib"
+				"~/.local/include/cddlib"
+				"/opt/local/include/cddlib"
+	)
+
+	find_library(CDD_LIB
+		NAMES libcdd.so libcdd.a
+		PATHS	"/usr/lib"
+				"/usr/local/lib"
+				"~/.local/lib"
+				"/opt/local/lib"
+	)
+endif()
+
 include_directories(include)
 include_directories(tclap)
 include_directories(${GUROBI_INCLUDE_DIR})
+
+if(USE_CDD)
+	include_directories(${CDD_INCLUDE_PATH})
+endif()
 
 set(SOURCE_FILES
 
@@ -89,11 +112,25 @@ set(SOURCE_FILES
 	"cli/modules/pilp_benson_module.cpp"
 )
 
+if(USE_CDD)
+	set(SOURCE_FILES ${SOURCE_FILES}
+		"src/generic/benson_dual/ove_cdd.cpp"
+		"include/pamilo/generic/benson_dual/ove_cdd.h"
+	)
+
+	add_compile_options(-DUSE_CDD)
+endif()
+
 add_executable(pamilo_cli ${SOURCE_FILES})
 
 target_link_libraries(pamilo_cli pamilo)
 target_link_libraries(pamilo_cli ${GUROBI_CXX_LIB})
 target_link_libraries(pamilo_cli ${GUROBI_LIB})
+
+if(USE_CDD)
+	target_link_libraries(pamilo_cli "${CDD_LIB}")
+endif()
+
 if(UNIX)
 	target_link_libraries(pamilo_cli pthread)
 	target_link_libraries(pamilo_cli dl)

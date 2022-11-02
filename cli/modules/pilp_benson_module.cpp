@@ -27,10 +27,12 @@ using TCLAP::ValueArg;
 #include <pamilo/benchmarks/lp_parser.h>
 #include <pamilo/pilp/pilp_dual_benson.h>
 
+#include <pamilo/generic/benson_dual/ove_cdd.h>
 #include <pamilo/generic/benson_dual/ove_fp_v2.h>
 
 using pamilo::GraphlessOVE;
 using pamilo::LPparser;
+using pamilo::OnlineVertexEnumeratorCDD;
 using pamilo::PilpDualBensonSolver;
 using pamilo::Point;
 
@@ -69,6 +71,11 @@ void PilpBensonModule::perform(int argc, char **argv)
             "defaults to -1 (use default epsilon of vertex enumerator).",
             false, -1, "vertex-enumerator-epsilon");
 
+        ValueArg<string> ve_argument("E", "vertex-enumeration",
+                                     "Which vertex enumeration algorithm is to be used. Options "
+                                     "are: cdd, default",
+                                     false, "default", "vertex-enumeration");
+
         ValueArg<int> solver_threads_limit(
             "t", "solver-thread-limit",
             "Maximum number of threads the solver is allowed to use. This defaults to 1.", false, 1,
@@ -99,6 +106,7 @@ void PilpBensonModule::perform(int argc, char **argv)
         cmd.add(epsilon_argument);
         cmd.add(point_epsilon_argument);
         cmd.add(solver_epsilon_argument);
+        cmd.add(ve_argument);
         cmd.add(vertex_enumerator_epsilon_argument);
         cmd.add(solver_threads_limit);
         cmd.add(instance_name_argument);
@@ -113,8 +121,9 @@ void PilpBensonModule::perform(int argc, char **argv)
         ilp.env.set(GRB_IntParam_LogToConsole, 0);
         ilp.env.set(GRB_IntParam_Threads,
                     solver_threads_limit.getValue() <= 1 ? 1 : solver_threads_limit.getValue());
-        
-        if (non_convex_argument.getValue()) {
+
+        if (non_convex_argument.getValue())
+        {
             ilp.env.set(GRB_IntParam_NonConvex, 2);
         }
 
@@ -130,6 +139,8 @@ void PilpBensonModule::perform(int argc, char **argv)
         string output_name = output_name_argument.getValue();
         bool no_preprocessing = no_preprocessing_argument.getValue();
         string solPrintType = print_type_argument.getValue();
+
+        string ve = ve_argument.getValue();
 
         if (output_name == "")
         {
@@ -155,8 +166,25 @@ void PilpBensonModule::perform(int argc, char **argv)
         {
             parser.getILP(instance_name, ilp);
 
+#ifdef USE_CDD
+            if (ve == "cdd")
             {
-                PilpDualBensonSolver<GraphlessOVE> solver(epsilon, pEpsilon, veEpsilon, sEpsilon);
+                PilpDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon, veEpsilon,
+                                                                       sEpsilon);
+                solver.Solve(ilp);
+
+                solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
+                                  solver.solutions().cend());
+            }
+            else
+#endif
+            {
+                if (ve == "cdd")
+                {
+                    std::cerr << "cdd is not activated in cmake!\n";
+                    exit(0);
+                }
+                PilpDualBensonSolver<GraphlessOVE> solver(epsilon, veEpsilon, sEpsilon);
                 solver.Solve(ilp);
 
                 solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),

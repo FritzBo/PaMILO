@@ -184,31 +184,20 @@ public:
             zeroCnt += (spread[i] == 0 ? 1 : 0);
         }
 
-        //todo roll back or delete
-        // double medianSpread = 0;
-        // if (zeroCnt < dim)
-        // {
-        //     std::nth_element(spread.begin(), spread.begin() + (dim + zeroCnt) / 2, spread.end());
-        //     medianSpread = spread[(dim + zeroCnt) / 2];
-        // }
-
-        // for (int i = 0; i < dim; i++)
-        // {
-        //     double offset = -mini[i];
-        //     ilp_.offset[i] = offset;
-        //     if (maxi[i] - mini[i] > 0 && medianSpread != 0)
-        //     {
-        //         ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
-        //     }
-        // }
+        double medianSpread = 0;
+        if (zeroCnt < dim)
+        {
+            std::nth_element(spread.begin(), spread.begin() + (dim + zeroCnt) / 2, spread.end());
+            medianSpread = spread[(dim + zeroCnt) / 2];
+        }
 
         for (int i = 0; i < dim; i++)
         {
             double offset = -mini[i];
             ilp_.offset[i] = offset;
-            if (maxi[i] - mini[i] > 0)
+            if (maxi[i] - mini[i] > 0 && medianSpread != 0)
             {
-                ilp_.relScale[i] = exp2(round(log2(1.0 / (maxi[i] - mini[i]))));
+                ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
             }
         }
 
