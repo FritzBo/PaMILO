@@ -20,6 +20,9 @@
 using namespace std;
 
 namespace pamilo {
+
+#ifdef USE_GRB
+
 void LPparser::getILP(string filename, ILP &ilp)
 {
     try
@@ -63,4 +66,37 @@ void LPparser::getILP(string filename, ILP &ilp)
 
     ilp.filename = filename;
 }
+
+#elif USE_CPLEX
+
+void LPparser::getILP(string filename, ILP &ilp)
+{
+    try
+    {
+        ilp.cplex.importModel(ilp.model, filename.c_str(), ilp.obj, ilp.vars, ilp.cons);
+        ilp.multiObj = ilp.obj;
+    }
+    catch (IloException &e)
+    {
+        cerr << "CPLEX failed to read the file. This is likely, because the input file is "
+                "corrupted or is not a MOMIP\n";
+        exit(-1);
+    }
+    ilp.cplex.setParam(IloCplex::Param::MultiObjective::Display, 2);
+    ilp.cplex.setParam(IloCplex::Param::ParamDisplay, 0);
+    ilp.cplex.setParam(IloCplex::Param::Threads, 1); // 1 as default
+    ilp.cplex.setOut(ilp.cplexFile);
+
+    ilp.dimension = ilp.multiObj.getNumCriteria();
+
+    ilp.relScale.resize(ilp.dimension, 1);
+    ilp.offset.resize(ilp.dimension, 0);
+
+    ilp.cplex.extract(ilp.model);
+    
+    ilp.filename = filename;
+}
+
+#endif
+
 }  // namespace pamilo

@@ -10,7 +10,12 @@
 
 #pragma once
 
-#include <gurobi_c++.h>
+#ifdef USE_GRB
+#    include <gurobi_c++.h>
+#elif USE_CPLEX
+#    include <ilcplex/ilocplex.h>
+#endif
+
 #include <fstream>
 #include <memory>
 
@@ -18,16 +23,28 @@
 
 /**
  * @brief Class to store all information about an ILP problem in. This includes the
- * Gurobi environment, model, file information and several more
+ * solver environment, model, file information and several more
  *
  */
 class ILP
 {
 public:
+#ifdef USE_GRB
     GRBEnv env;
     std::unique_ptr<GRBModel> model;
-    int sense_og;
     std::unique_ptr<GRBVar[]> vars;
+    std::string grbFileName;
+#elif USE_CPLEX
+    IloEnv env;
+    IloModel model;
+    IloCplex cplex;
+    IloObjective obj;
+    IloObjective multiObj;
+    IloNumVarArray vars;
+    IloRangeArray cons;
+    std::ofstream cplexFile;
+#endif
+    int sense_og;
     int n_vars;
 
     std::vector<double> relScale;
@@ -37,7 +54,6 @@ public:
     std::ofstream solFile;
     std::string solPrintType;
     std::ofstream logFile;
-    std::string grbFileName;
     bool noPreprocessing;
 
     int startTime;
@@ -45,15 +61,24 @@ public:
     int dimension;
 
     ILP()
-        : model(nullptr)
+        :
+#ifdef USE_GRB
+        model(nullptr)
         , vars(nullptr)
+        , grbFileName("")
+#elif USE_CPLEX
+        model(env)
+        , cplex(env)
+        , vars(env)
+        , cons(env)
+        , cplexFile("")
+#endif
         , n_vars(-1)
         , dimension(-1)
         , filename("pilpInstance")
         , solFile("")
         , solPrintType("json")
         , logFile("")
-        , grbFileName("")
         , noPreprocessing(false)
         , startTime(-1)
     {

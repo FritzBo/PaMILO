@@ -27,12 +27,15 @@ using TCLAP::ValueArg;
 #include <pamilo/benchmarks/lp_parser.h>
 #include <pamilo/pilp/pilp_dual_benson.h>
 
-#include <pamilo/generic/benson_dual/ove_cdd.h>
+#ifdef USE_CDD
+#    include <pamilo/generic/benson_dual/ove_cdd.h>
+using pamilo::OnlineVertexEnumeratorCDD;
+#endif
 #include <pamilo/generic/benson_dual/ove_fp_v2.h>
 
 using pamilo::GraphlessOVE;
 using pamilo::LPparser;
-using pamilo::OnlineVertexEnumeratorCDD;
+
 using pamilo::PilpDualBensonSolver;
 using pamilo::Point;
 
@@ -48,9 +51,15 @@ void PilpBensonModule::perform(int argc, char **argv)
             "o", "output", "Basename of the output files. This defaults to <instance>.", false, "",
             "output");
 
-        ValueArg<double> epsilon_argument("e", "epsilon",
-                                          "Epsilon to be used in floating point calculations.",
-                                          false, 1E-6, "epsilon");
+        ValueArg<double> epsilon_argument(
+            "e", "epsilon", "Epsilon to be used in floating point calculations.", false,
+#ifdef USE_GRB
+            1E-6
+#elif USE_CPLEX
+            1E-7
+#endif
+            ,
+            "epsilon");
 
         ValueArg<double> point_epsilon_argument(
             "p", "point-epsilon",
@@ -94,7 +103,7 @@ void PilpBensonModule::perform(int argc, char **argv)
         SwitchArg non_convex_argument(
             "", "non-con",
             "Allows Gurobi to also attempt solving non-convex quadratic problems. By default this "
-            "is off. Non-convex problems might have especially high runtime.",
+            "is off. Non-convex problems might have especially high runtime. No effect for CPLEX.",
             false);
 
         ValueArg<string> print_type_argument("f", "solution-print-type",
@@ -110,13 +119,15 @@ void PilpBensonModule::perform(int argc, char **argv)
         cmd.add(vertex_enumerator_epsilon_argument);
         cmd.add(solver_threads_limit);
         cmd.add(instance_name_argument);
-        cmd.add(no_preprocessing_argument);
         cmd.add(non_convex_argument);
+        cmd.add(no_preprocessing_argument);
         cmd.add(print_type_argument);
 
         cmd.parse(argc, argv);
 
         ILP ilp;
+
+#ifdef USE_GRB
 
         ilp.env.set(GRB_IntParam_LogToConsole, 0);
         ilp.env.set(GRB_IntParam_Threads,
@@ -126,6 +137,8 @@ void PilpBensonModule::perform(int argc, char **argv)
         {
             ilp.env.set(GRB_IntParam_NonConvex, 2);
         }
+
+#endif
 
         string instance_name = instance_name_argument.getValue();
         double epsilon = epsilon_argument.getValue();
@@ -153,11 +166,15 @@ void PilpBensonModule::perform(int argc, char **argv)
             ilp.solFile << "{\n\t\"solutions\": [";
         }
         ilp.logFile.open(output_name + "_log");
+
+#ifdef USE_GRB
         // Gurobi appends its logs, so we have to clean up before starting:
         std::ofstream tmpCleaner;
         tmpCleaner.open(output_name + "_gurobi");
         tmpCleaner.close();
         ilp.grbFileName = output_name + "_gurobi";
+#endif
+
         ilp.noPreprocessing = no_preprocessing;
 
         LPparser parser;
@@ -165,6 +182,14 @@ void PilpBensonModule::perform(int argc, char **argv)
         try
         {
             parser.getILP(instance_name, ilp);
+
+#ifdef USE_CPLEX
+            ilp.cplex.setParam(IloCplex::Param::Threads, solver_threads_limit.getValue() <= 1
+                                                             ? 1
+                                                             : solver_threads_limit.getValue());
+
+            ilp.cplex.extract(ilp.model);
+#endif
 
 #ifdef USE_CDD
             if (ve == "cdd")
@@ -191,10 +216,32 @@ void PilpBensonModule::perform(int argc, char **argv)
                                   solver.solutions().cend());
             }
         }
+#ifdef USE_GRB
         catch (GRBException &e)
         {
-            std::cerr << "Gurobi Exception:\n" << e.getMessage() << std::endl;
+            if ((e.getErrorCode() == GRB_ERROR_Q_NOT_PSD) ||
+                (e.getErrorCode() == GRB_ERROR_QCP_EQUALITY_CONSTRAINT))
+            {
+                std::cerr << "Gurobi Exception:\n"
+                          << e.getMessage()
+                          << "\n\nSet --non-con as argument for PaMILO to enable quadratic "
+                             "non-convex optimization."
+                          << std::endl;
+            }
+            else
+            {
+                std::cerr << "Gurobi Exception:\n"
+                          << e.getMessage() << " with error code " << e.getErrorCode() << std::endl;
+            }
         }
+#elif USE_CPLEX
+        catch (IloCplex::Exception &e)
+        {
+            std::cerr << "Cplex Exception:\n"
+                      << e.getMessage() << " with status " << e.getStatus() << std::endl;
+        }
+#endif
+
         if (ilp.solPrintType == "json")
         {
             ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions_.size() << "\n}\n";
