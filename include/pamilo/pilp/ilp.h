@@ -55,6 +55,7 @@ public:
     std::string solPrintType;
     std::ofstream logFile;
     bool noPreprocessing;
+    bool oneprepro;
 
     int startTime;
 

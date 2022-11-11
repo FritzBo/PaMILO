@@ -51,15 +51,9 @@ void PilpBensonModule::perform(int argc, char **argv)
             "o", "output", "Basename of the output files. This defaults to <instance>.", false, "",
             "output");
 
-        ValueArg<double> epsilon_argument(
-            "e", "epsilon", "Epsilon to be used in floating point calculations.", false,
-#ifdef USE_GRB
-            1E-6
-#elif USE_CPLEX
-            1E-7
-#endif
-            ,
-            "epsilon");
+        ValueArg<double> epsilon_argument("e", "epsilon",
+                                          "Epsilon to be used in floating point calculations.",
+                                          false, 1E-7, "epsilon");
 
         ValueArg<double> point_epsilon_argument(
             "p", "point-epsilon",
@@ -100,6 +94,11 @@ void PilpBensonModule::perform(int argc, char **argv)
             "0.",
             false);
 
+        // TODO: Remove for release
+        SwitchArg oneprepro_arg("", "onepre", "Enables normalization to 1. Remove for Release!",
+                                false);
+        cmd.add(oneprepro_arg);
+
         SwitchArg non_convex_argument(
             "", "non-con",
             "Allows Gurobi to also attempt solving non-convex quadratic problems. By default this "
@@ -126,6 +125,8 @@ void PilpBensonModule::perform(int argc, char **argv)
         cmd.parse(argc, argv);
 
         ILP ilp;
+
+        ilp.oneprepro = oneprepro_arg.getValue();
 
 #ifdef USE_GRB
 

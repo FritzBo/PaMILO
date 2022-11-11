@@ -200,6 +200,11 @@ public:
             medianSpread = spread[(dim + zeroCnt) / 2];
         }
 
+        if(ilp_.oneprepro)
+        {
+            medianSpread = 1;
+        }
+
         for (int i = 0; i < dim; i++)
         {
             double offset = -mini[i];
