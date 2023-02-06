@@ -10,6 +10,7 @@
  */
 
 #include "pilp_benson_module.h"
+#include "pilp_benson_args.hpp"
 
 using std::list;
 using std::pair;
@@ -43,87 +44,7 @@ void PilpBensonModule::perform(int argc, char **argv)
 {
     try
     {
-        CmdLine cmd("Dual Benson to find the Pareto-frontier of the parametric integer linear "
-                    "program problem.",
-                    ' ', "0.1");
-
-        ValueArg<string> output_name_argument(
-            "o", "output", "Basename of the output files. This defaults to <instance>.", false, "",
-            "output");
-
-        ValueArg<double> epsilon_argument(
-            "e", "epsilon", "Epsilon to be used in floating point calculations.", false,
-#ifdef USE_GRB
-            1E-6
-#elif USE_CPLEX
-            1E-7
-#endif
-            ,
-            "epsilon");
-
-        ValueArg<double> point_epsilon_argument(
-            "p", "point-epsilon",
-            "Epsilon to decide if a potential new extreme point is already represented by an old "
-            "one via euclidean distance. A value < 0 deactivates point pruning. Deacticvated by "
-            "default",
-            false, -1, "point-epsilon");
-
-        ValueArg<double> solver_epsilon_argument(
-            "s", "solver-epsilon",
-            "Epsilon to be used in floating point calculations of the solver. This defaults to -1 "
-            "(use default eps of solver).",
-            false, -1, "solver-epsilon");
-
-        ValueArg<double> vertex_enumerator_epsilon_argument(
-            "v", "vertex-enumerator-epsilon",
-            "Epsilon to be used in floating point calculations of the vertex enumerator. This "
-            "defaults to -1 (use default epsilon of vertex enumerator).",
-            false, -1, "vertex-enumerator-epsilon");
-
-        ValueArg<string> ve_argument("E", "vertex-enumeration",
-                                     "Which vertex enumeration algorithm is to be used. Options "
-                                     "are: cdd, default",
-                                     false, "default", "vertex-enumeration");
-
-        ValueArg<int> solver_threads_limit(
-            "t", "solver-thread-limit",
-            "Maximum number of threads the solver is allowed to use. This defaults to 1.", false, 1,
-            "solver-thread-limit");
-
-        UnlabeledValueArg<string> instance_name_argument("instance", "Name of the instance file.",
-                                                         true, "", "instance");
-
-        SwitchArg no_preprocessing_argument(
-            "", "no-pre",
-            "Don't run preprocessing. Only use this, if you know all objectives are in roughly the "
-            "same range and either the lowest or the highest value in each objective is close to "
-            "0.",
-            false);
-
-        SwitchArg non_convex_argument(
-            "", "non-con",
-            "Allows Gurobi to also attempt solving non-convex quadratic problems. By default this "
-            "is off. Non-convex problems might have especially high runtime. No effect for CPLEX.",
-            false);
-
-        ValueArg<string> print_type_argument("f", "solution-print-type",
-                                             "Which output format for the solution file is to be "
-                                             "used. Options are: json (default) and polyscip",
-                                             false, "json", "solution-print-type");
-
-        cmd.add(output_name_argument);
-        cmd.add(epsilon_argument);
-        cmd.add(point_epsilon_argument);
-        cmd.add(solver_epsilon_argument);
-        cmd.add(ve_argument);
-        cmd.add(vertex_enumerator_epsilon_argument);
-        cmd.add(solver_threads_limit);
-        cmd.add(instance_name_argument);
-        cmd.add(non_convex_argument);
-        cmd.add(no_preprocessing_argument);
-        cmd.add(print_type_argument);
-
-        cmd.parse(argc, argv);
+        PilpBensonArgs args(argc, argv);
 
         ILP ilp;
 
@@ -131,29 +52,33 @@ void PilpBensonModule::perform(int argc, char **argv)
 
         ilp.env.set(GRB_IntParam_LogToConsole, 0);
         ilp.env.set(GRB_IntParam_Threads,
-                    solver_threads_limit.getValue() <= 1 ? 1 : solver_threads_limit.getValue());
+                    args.solver_threads_limit.getValue() <= 1 ? 1 : args.solver_threads_limit.getValue());
 
-        if (non_convex_argument.getValue())
+        if (args.non_convex.getValue())
         {
             ilp.env.set(GRB_IntParam_NonConvex, 2);
         }
 
+        ilp.env.set(GRB_IntParam_Presolve, args.grb_presovle.getValue());
+        ilp.env.set(GRB_IntParam_Method, args.grb_lp.getValue());
+        ilp.env.set(GRB_IntParam_ScaleFlag, args.grb_scale.getValue());
+
 #endif
 
-        string instance_name = instance_name_argument.getValue();
-        double epsilon = epsilon_argument.getValue();
-        double pEpsilon = point_epsilon_argument.getValue();
-        double sEpsilon = solver_epsilon_argument.getValue();
-        double veEpsilon = vertex_enumerator_epsilon_argument.getValue();
+        string instance_name = args.instance_name.getValue();
+        double epsilon = args.epsilon.getValue();
+        double pEpsilon = args.point_epsilon.getValue();
+        double sEpsilon = args.solver_epsilon.getValue();
+        double veEpsilon = args.vertex_enumerator_epsilon.getValue();
         if (veEpsilon = -1)
         {
             veEpsilon = epsilon;
         }
-        string output_name = output_name_argument.getValue();
-        bool no_preprocessing = no_preprocessing_argument.getValue();
-        string solPrintType = print_type_argument.getValue();
+        string output_name = args.output_name.getValue();
+        bool no_preprocessing = args.no_preprocessing.getValue();
+        string solPrintType = args.print_type.getValue();
 
-        string ve = ve_argument.getValue();
+        string ve = args.ve.getValue();
 
         if (output_name == "")
         {
@@ -224,7 +149,7 @@ void PilpBensonModule::perform(int argc, char **argv)
             {
                 std::cerr << "Gurobi Exception:\n"
                           << e.getMessage()
-                          << "\n\nSet --non-con as argument for PaMILO to enable quadratic "
+                          << "\n\nSet --non-con as arg for PaMILO to enable quadratic "
                              "non-convex optimization."
                           << std::endl;
             }
