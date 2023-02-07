@@ -117,6 +117,7 @@ endif()
 
 include_directories(include)
 include_directories(tclap)
+include_directories(cli)
 
 if(USE_GRB)
 	include_directories(${GUROBI_INCLUDE_DIR})

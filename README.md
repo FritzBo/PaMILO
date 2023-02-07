@@ -67,6 +67,8 @@ PaMILO has an onboard vertex enumeration.
 As an alternative, PaMILO is also compatible with [cdd](https://people.inf.ethz.ch/fukudak/cdd_home/).
 For numerical challenging programs, cdd might be more stable.
 
+Todo Fukuda citen und anschreiben
+
 To use cdd, install it on your system and then simply enable it in cmake.
 If installed in a default location, it should be found automatically.
 Otherwise, set `CDD_INCLUDE_PATH` to `<path to folder of cdd.>` and `CDD_LIB` as `<path to cdd>/libcdd.so`.

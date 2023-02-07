@@ -40,6 +40,9 @@ using pamilo::LPparser;
 using pamilo::PilpDualBensonSolver;
 using pamilo::Point;
 
+#include <pamilo/pilp/ilp_interface.hpp>
+#include <pamilo/pilp/grb_interface.hpp>
+
 void PilpBensonModule::perform(int argc, char **argv)
 {
     try
@@ -106,6 +109,7 @@ void PilpBensonModule::perform(int argc, char **argv)
 
         try
         {
+            pamilo::IlpInterface<pamilo::GRBInterface>test(args);
             parser.getILP(instance_name, ilp);
 
 #ifdef USE_CPLEX
