@@ -12,5 +12,7 @@
 
 namespace pamilo
 {
-    enum SolverStatus{Unbounded, Infeasible, Success, Error, Unknown};
+    enum SolverStatus{Unbounded, Infeasible, Success, Error, UnknownStatus};
+
+    enum VarType{Float, Integer, UnknownType};
 } // namespace pamilo

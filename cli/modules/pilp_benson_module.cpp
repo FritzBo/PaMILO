@@ -40,8 +40,8 @@ using pamilo::LPparser;
 using pamilo::PilpDualBensonSolver;
 using pamilo::Point;
 
-#include <pamilo/pilp/ilp_interface.hpp>
 #include <pamilo/pilp/grb_interface.hpp>
+#include <pamilo/pilp/ilp_interface.hpp>
 
 void PilpBensonModule::perform(int argc, char **argv)
 {
@@ -49,82 +49,24 @@ void PilpBensonModule::perform(int argc, char **argv)
     {
         PilpBensonArgs args(argc, argv);
 
-        ILP ilp;
-
-#ifdef USE_GRB
-
-        ilp.env.set(GRB_IntParam_LogToConsole, 0);
-        ilp.env.set(GRB_IntParam_Threads,
-                    args.solver_threads_limit.getValue() <= 1 ? 1 : args.solver_threads_limit.getValue());
-
-        if (args.non_convex.getValue())
-        {
-            ilp.env.set(GRB_IntParam_NonConvex, 2);
-        }
-
-        ilp.env.set(GRB_IntParam_Presolve, args.grb_presovle.getValue());
-        ilp.env.set(GRB_IntParam_Method, args.grb_lp.getValue());
-        ilp.env.set(GRB_IntParam_ScaleFlag, args.grb_scale.getValue());
-
-#endif
-
-        string instance_name = args.instance_name.getValue();
-        double epsilon = args.epsilon.getValue();
-        double pEpsilon = args.point_epsilon.getValue();
-        double sEpsilon = args.solver_epsilon.getValue();
-        double veEpsilon = args.vertex_enumerator_epsilon.getValue();
-        if (veEpsilon = -1)
-        {
-            veEpsilon = epsilon;
-        }
-        string output_name = args.output_name.getValue();
-        bool no_preprocessing = args.no_preprocessing.getValue();
-        string solPrintType = args.print_type.getValue();
-
-        string ve = args.ve.getValue();
-
-        if (output_name == "")
-        {
-            output_name = instance_name;
-        }
-        ilp.solFile.open(output_name + "_sol");
-        ilp.solPrintType = solPrintType;
-        if (ilp.solPrintType == "json")
-        {
-            ilp.solFile << "{\n\t\"solutions\": [";
-        }
-        ilp.logFile.open(output_name + "_log");
-
-#ifdef USE_GRB
-        // Gurobi appends its logs, so we have to clean up before starting:
-        std::ofstream tmpCleaner;
-        tmpCleaner.open(output_name + "_gurobi");
-        tmpCleaner.close();
-        ilp.grbFileName = output_name + "_gurobi";
-#endif
-
-        ilp.noPreprocessing = no_preprocessing;
-
-        LPparser parser;
+        auto ve = args.ve.getValue();
+        auto epsilon = args.epsilon.getValue();
+        auto veEpsilon = args.vertex_enumerator_epsilon.getValue();
 
         try
         {
-            pamilo::IlpInterface<pamilo::GRBInterface>test(args);
-            parser.getILP(instance_name, ilp);
+            pamilo::IlpInterface<pamilo::GRBInterface> ilp(args);
 
-#ifdef USE_CPLEX
-            ilp.cplex.setParam(IloCplex::Param::Threads, solver_threads_limit.getValue() <= 1
-                                                             ? 1
-                                                             : solver_threads_limit.getValue());
-
-            ilp.cplex.extract(ilp.model);
-#endif
+            if (ilp.solPrintType == "json")
+            {
+                ilp.solFile << "{\n\t\"solutions\": [";
+            }
 
 #ifdef USE_CDD
             if (ve == "cdd")
             {
-                PilpDualBensonSolver<OnlineVertexEnumeratorCDD> solver(epsilon, veEpsilon,
-                                                                       sEpsilon);
+                PilpDualBensonSolver<OnlineVertexEnumeratorCDD, pamilo::GRBInterface> solver(
+                    epsilon, veEpsilon);
                 solver.Solve(ilp);
 
                 solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
@@ -138,11 +80,18 @@ void PilpBensonModule::perform(int argc, char **argv)
                     std::cerr << "cdd is not activated in cmake!\n";
                     exit(0);
                 }
-                PilpDualBensonSolver<GraphlessOVE> solver(epsilon, veEpsilon, sEpsilon);
+
+                PilpDualBensonSolver<GraphlessOVE, pamilo::GRBInterface> solver(epsilon, veEpsilon);
+
                 solver.Solve(ilp);
 
                 solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
                                   solver.solutions().cend());
+
+                if (ilp.solPrintType == "json")
+                {
+                    ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions_.size() << "\n}\n";
+                }
             }
         }
 #ifdef USE_GRB
@@ -170,13 +119,6 @@ void PilpBensonModule::perform(int argc, char **argv)
                       << e.getMessage() << " with status " << e.getStatus() << std::endl;
         }
 #endif
-
-        if (ilp.solPrintType == "json")
-        {
-            ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions_.size() << "\n}\n";
-        }
-        ilp.solFile.close();
-        ilp.logFile.close();
     }
     catch (ArgException &e)
     {

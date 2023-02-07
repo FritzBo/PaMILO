@@ -19,6 +19,8 @@
 #include <typeinfo>
 
 #include <pamilo/pilp/ilp.h>
+#include <pamilo/pilp/ilp_interface.hpp>
+#include <pamilo/pilp/interface_util.hpp>
 
 #include <pamilo/basic/abstract_solver.h>
 #include <pamilo/basic/point.h>
@@ -50,6 +52,7 @@ struct Log {
  * used is string
  *
  */
+template <class Solverinterface>
 class ILPSolverPrinter
 {
 public:
@@ -58,7 +61,7 @@ public:
      *
      * @param ilp The ILP onto whose solution file is written
      */
-    ILPSolverPrinter(ILP &ilp)
+    ILPSolverPrinter(IlpInterface<Solverinterface> &ilp)
         : ilp_(ilp)
     {
     }
@@ -67,28 +70,19 @@ public:
      * @brief Writes on the solution file
      *
      */
-    inline void operator()(std::pair<std::string, Point *>, bool);
+    inline void operator()(std::pair<std::string, Point *>, bool = false);
 
 private:
-    ILP &ilp_;
+    IlpInterface<Solverinterface> &ilp_;
 };
 
-void ILPSolverPrinter::operator()(std::pair<std::string, Point *> sol, bool isFirst = false)
+template <class Solverinterface>
+void ILPSolverPrinter<Solverinterface>::operator()(std::pair<std::string, Point *> sol,
+                                                   bool isFirst)
 {
     Point &point = *(sol.second);
-    Point pointScaled(ilp_.dimension);
-    for (int i = 0; i < ilp_.dimension; i++)
-    {
-        pointScaled[i] = (point[i] / ilp_.relScale[i]) - ilp_.offset[i];
-    }
-#ifdef USE_GRB
-    if (ilp_.sense_og == GRB_MAXIMIZE)
-#elif USE_CPLEX
+    Point pointScaled(ilp_.solver.rescale((*sol.second)));
 
-#endif
-    {
-        pointScaled *= -1;
-    }
     if (ilp_.solPrintType == "polyscip")
     {
         ilp_.solFile << "[ " << pointScaled << " ]" << sol.first;
@@ -100,7 +94,7 @@ void ILPSolverPrinter::operator()(std::pair<std::string, Point *> sol, bool isFi
             ilp_.solFile << ",";
         }
         ilp_.solFile << "\n\t\t{\n\t\t\t\"values\" : [";
-        for (int i = 0; i < ilp_.dimension; i++)
+        for (int i = 0; i < ilp_.solver.d(); i++)
         {
             if (i != 0)
             {
@@ -116,6 +110,7 @@ void ILPSolverPrinter::operator()(std::pair<std::string, Point *> sol, bool isFi
     std::cout << pointScaled << std::endl;
 }
 
+template <class Solverinterface>
 class ILPSolverAdaptor
 {
 public:
@@ -125,25 +120,12 @@ public:
      * @param ilp ILP object which contains the solver used in calculations
      * @param log The log object to which the values are added
      * @param eps Epsilon value for double comparison instead of 0.0
-     * @param solverEps Optional epsilon value used for Gurobi linearization. Ignored if -1
      */
-    ILPSolverAdaptor(ILP &ilp, Log &log, double eps, double solverEps = -1)
+    ILPSolverAdaptor(IlpInterface<Solverinterface> &ilp, Log &log, double eps)
         : ilp_(ilp)
         , log_(log)
         , eps_(eps)
-        , solverEps_(solverEps)
     {
-        if (solverEps != -1)
-        {
-#ifdef USE_GRB
-            ilp.logFile << "solver epsilon set to: " << solverEps << "\n";
-            ilp.model->set(GRB_DoubleParam_FeasibilityTol, solverEps_);
-            ilp.model->update();
-#elif USE_CPLEX
-            ilp.logFile << "solver epsilon set to: " << solverEps << "\n";
-            ilp.cplex.setParam(IloCplex::Param::MIP::Tolerances::Linearization, solverEps_);
-#endif
-        }
         if (ilp.noPreprocessing)
         {
             ilp.logFile << "preprocessing time: 0\n";
@@ -153,7 +135,7 @@ public:
         // Preprocessing
 
         clock_t start = clock();
-        int dim = ilp_.dimension;
+        int dim = ilp_.solver.d();
 
         Point weighting(dim), mini(dim), maxi(dim);
         std::vector<double> spread(dim);
@@ -171,7 +153,9 @@ public:
             weighting[i] = 1;
             Point value(dim);
             std::string sol;
+
             double scalar_value = operator()(weighting, value, sol);
+
             for (int j = 0; j < dim; j++)
             {
                 mini[j] = std::min(mini[j], value[j]);
@@ -200,59 +184,29 @@ public:
             medianSpread = spread[(dim + zeroCnt) / 2];
         }
 
+        Point p_offset(ilp_.solver.d());
+        Point p_relscale(ilp_.solver.d());
+
         for (int i = 0; i < dim; i++)
         {
             double offset = -mini[i];
-            ilp_.offset[i] = offset;
+            p_offset[i] = offset;
             if (maxi[i] - mini[i] > 0 && medianSpread != 0)
             {
-                ilp_.relScale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
+                p_relscale[i] = exp2(round(log2(medianSpread / (maxi[i] - mini[i]))));
+            }
+            else
+            {
+                p_relscale[i] = 1;
             }
         }
 
         // TODO: Make final decision which normalization to use
 
-#ifdef USE_GRB
-        for (int i = 0; i < ilp_.dimension; i++)
-        {
-            ilp_.model->setObjectiveN(
-                ilp_.relScale[i] * (ilp_.model->getObjective(i) + ilp_.offset[i]), i);
-        }
+        ilp_.solver.modify_objectives(p_relscale, p_offset);
 
-        ilp_.model->update();
-
-        ilp_.logFile << "preprocessed objectives:\n";
-        for (int i = 0; i < ilp_.dimension; i++)
-        {
-            ilp_.logFile << "\t" << ilp_.model->getObjective(i) << "\n";
-        }
-#elif USE_CPLEX
-
-        IloNumExprArray objs(ilp_.env);
-        IloNumArray weights(ilp_.env);
-        IloIntArray prio(ilp_.env);
-        IloNumArray absTols(ilp_.env);
-        IloNumArray relTols(ilp_.env);
-
-        for (int i = 0; i < ilp_.dimension; i++)
-        {
-            objs.add(ilp_.relScale[i] * (ilp_.multiObj.getCriterion(i) + ilp_.offset[i]));
-            weights.add(1);
-            prio.add(0);
-            absTols.add(0);
-            relTols.add(0);
-        }
-        ilp_.model.remove(ilp_.obj);
-        ilp_.multiObj =
-            IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights, prio, absTols, relTols),
-                         IloObjective::Minimize);
-        ilp_.obj = ilp_.multiObj;
-        ilp_.model.add(ilp_.obj);
-
-        ilp_.cplex.extract(ilp_.model);
-
-        ilp_.logFile << "preprocessed objectives: " << ilp_.multiObj << std::endl;
-#endif
+        ilp_.logFile << "\tRel. Scale: " << p_relscale << "\n\tOffset:     " << p_offset
+                     << std::endl;
 
         ilp_.logFile << "preprocessing time: " << (clock() - start) / (double)CLOCKS_PER_SEC
                      << std::endl;
@@ -261,15 +215,14 @@ public:
     inline double operator()(const Point &weighting, Point &value, std::string &sol);
 
 private:
-    ILP &ilp_;
+    IlpInterface<Solverinterface> &ilp_;
 
     Log &log_;
 
     double eps_;
-    double solverEps_;
 };
 
-template <typename OnlineVertexEnumerator>
+template <typename OnlineVertexEnumerator, class SolverInterface>
 class PilpDualBensonSolver : public AbstractSolver<std::string>
 {
 public:
@@ -281,12 +234,10 @@ public:
      * @param veEps
      * @param solverEps
      */
-    PilpDualBensonSolver(double epsilon = 1E-6, double pEps = -1, double veEps = -1,
-                         double solverEps = -1)
+    PilpDualBensonSolver(double epsilon = 1E-6, double pEps = -1, double veEps = -1)
         : epsilon_(epsilon)
         , pEps_(pEps)
         , veEps_(veEps)
-        , solverEps_(solverEps)
     {
     }
 
@@ -295,13 +246,12 @@ public:
      *
      * @tparam OnlineVertexEnumerator The vertex enumerator to be used
      */
-    void Solve(ILP &ilp);
+    void Solve(IlpInterface<SolverInterface> &ilp);
 
 private:
     double epsilon_;
     double pEps_;
     double veEps_;
-    double solverEps_;
 };
 
 /**
@@ -312,192 +262,55 @@ private:
  * @param sol String to which the point in solution space and objective space is written
  * @return double value of optimal solution
  */
-
-#ifdef USE_GRB
-
-inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value, std::string &sol)
+template <class SolverInterface>
+inline double ILPSolverAdaptor<SolverInterface>::operator()(const Point &weighting, Point &value,
+                                                            std::string &sol)
 {
     ilp_.logFile << "weighting " << weighting << std::endl;
 
-    for (int i = 0; i < ilp_.dimension; i++)
+    bool has_zeroes = false;
+    std::vector<int> prio(ilp_.solver.d());
+    Point rel_weight(ilp_.solver.d());
+    for (int i = 0; i < ilp_.solver.d(); i++)
     {
-        ilp_.model->set(GRB_IntParam_ObjNumber, i);
-        if (weighting[i] >= eps_)
+        if (std::abs(weighting[i]) <= eps_)
         {
-            ilp_.model->set(GRB_DoubleAttr_ObjNWeight, weighting[i]);
-            ilp_.model->set(GRB_IntAttr_ObjNPriority, 1);
+            has_zeroes = true;
+            prio[i] = 0;
+            rel_weight[i] = 1;
         }
         else
         {
-            ilp_.model->set(GRB_DoubleAttr_ObjNWeight, 1);
-            ilp_.model->set(GRB_IntAttr_ObjNPriority, 0);
+            prio[i] = 1;
+            rel_weight[i] = weighting[i];
         }
     }
-
-    ilp_.model->set(GRB_IntAttr_ModelSense, GRB_MINIMIZE);
-
-    ilp_.model->update();
 
     clock_t start = clock();
 
-    ilp_.model->optimize();
-
-    log_.solver_time += (clock() - start) / double(CLOCKS_PER_SEC);
-    log_.nSolves++;
-
-    for (int i = 0; i < ilp_.dimension; i++)
+    std::pair<SolverStatus, double> opti_return{SolverStatus::UnknownStatus, -1};
+    if (has_zeroes)
     {
-        value[i] = ilp_.model->getObjective(i).getValue();
-    }
-
-    auto solveStatus = ilp_.model->get(GRB_IntAttr_Status);
-
-    if (solveStatus == GRB_INF_OR_UNBD || solveStatus == GRB_INFEASIBLE ||
-        solveStatus == GRB_UNBOUNDED)
-    {
-        ilp_.logFile << "Subproblem is unbounded or infeasible. Exiting!\n";
-        exit(0);
-    }
-
-    if (ilp_.solPrintType == "json")
-    {
-        sol += "\n\t\t\t\"variables\" : {";
-    }
-    bool firstPrint = true;
-    for (int i = 0; i < ilp_.n_vars; i++)
-    {
-        const auto &var = ilp_.vars[i];
-        float val = var.get(GRB_DoubleAttr_X);
-        if (val > eps_ || val < -eps_)
-        {
-            if (ilp_.solPrintType == "json")
-            {
-                if (!firstPrint)
-                {
-                    sol += ",";
-                }
-                else
-                {
-                    firstPrint = false;
-                }
-                sol += "\n\t\t\t\t\"";
-                sol += var.get(GRB_StringAttr_VarName);
-                sol += "\" : ";
-            }
-            else
-            {
-                sol += " ";
-                sol += var.get(GRB_StringAttr_VarName);
-                sol += "=";
-            }
-            if ((var.get(GRB_CharAttr_VType) != 'C' && var.get(GRB_CharAttr_VType) != 'S') ||
-                (val + eps_ > int(val - eps_) && val - eps_ < int(val + eps_)))
-            {
-                sol += std::to_string(int(val));
-            }
-            else
-            {
-                sol += std::to_string(val);
-            }
-        }
-    }
-    sol += "\n";
-    if (ilp_.solPrintType == "json")
-    {
-        sol += "\t\t\t}";
-    }
-
-    double scalar{0.0};
-
-    for (int i = 0; i < ilp_.dimension; i++)
-    {
-        if (weighting[i] >= eps_)
-        {
-            scalar += weighting[i] * ilp_.model->getObjective(i).getValue();
-        }
-    }
-
-    return scalar;
-}
-
-#elif USE_CPLEX
-
-inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value, std::string &sol)
-{
-    // Initialising ciplex objects
-    IloNumExprArray objs(ilp_.env);
-    IloNumArray weights(ilp_.env);
-    IloIntArray prio(ilp_.env);
-    IloNumArray absTols(ilp_.env);
-    IloNumArray relTols(ilp_.env);
-    IloNumExpr singleObj(ilp_.env);
-
-    auto sense = ilp_.multiObj.getSense();
-
-    // Checks for zero values in weights. If one is found, solver needs to use lexicographic
-    // ordering
-    bool hasZeroWeight = false;
-
-    for (int i = 0; i < ilp_.dimension; i++)
-    {
-        if (weighting[i] < eps_)
-        {
-            hasZeroWeight = true;
-            objs.add(ilp_.multiObj.getCriterion(i) * sense);
-            weights.add(1);
-            prio.add(1);
-            absTols.add(0);
-            relTols.add(0);
-        }
-        else
-        {
-            objs.add(ilp_.multiObj.getCriterion(i) * sense);
-            weights.add(weighting[i]);
-            prio.add(2);
-            absTols.add(0);
-            relTols.add(0);
-            singleObj += ilp_.multiObj.getCriterion(i) * sense * weighting[i];
-        }
-    }
-
-    ilp_.model.remove(ilp_.obj);
-    ilp_.multiObj =
-        IloObjective(ilp_.env, IloStaticLex(ilp_.env, objs, weights, prio, absTols, relTols),
-                     IloObjective::Minimize);
-    if (hasZeroWeight)
-    {
-        // Lexicographic solving, first optimizes weighted sum problem, then dimensions with non
-        // zero weights,then the remaining dimensions
-        ilp_.obj = ilp_.multiObj;
+        opti_return = ilp_.solver.lex_wss(weighting, rel_weight, prio);
     }
     else
     {
-        // Standard weighted sum, no lexicographic solving
-        ilp_.obj = IloObjective(ilp_.env, singleObj, IloObjective::Minimize);
+        opti_return = ilp_.solver.wss(weighting);
     }
-    ilp_.model.add(ilp_.obj);
-
-    ilp_.cplex.extract(ilp_.model);
-
-    bool doRun = true;
-    clock_t start = clock();
-
-    ilp_.cplex.solve();
 
     log_.solver_time += (clock() - start) / double(CLOCKS_PER_SEC);
     log_.nSolves++;
 
-    for (int i = 0; i < ilp_.dimension; i++)
+    for (int i = 0; i < ilp_.solver.d(); i++)
     {
-        value[i] = ilp_.cplex.getValue(objs[i], -1);
+        value[i] = ilp_.solver.obj_value(i);
     }
 
-    auto solveStatus = ilp_.cplex.getStatus();
+    // auto solveStatus = ilp_.model->get(GRB_IntAttr_Status);
 
-    if (solveStatus == IloAlgorithm::Status::InfeasibleOrUnbounded ||
-        solveStatus == IloAlgorithm::Status::Unbounded)
+    if (opti_return.first != SolverStatus::Success)
     {
-        ilp_.logFile << "Problem is unbounded\n";
+        ilp_.logFile << "Subproblem could not be solved. Exiting!\n";
         exit(0);
     }
 
@@ -506,10 +319,9 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
         sol += "\n\t\t\t\"variables\" : {";
     }
     bool firstPrint = true;
-    for (int i = 0; i < ilp_.vars.getSize(); i++)
-    {
-        auto var = ilp_.vars[i];
-        float val = ilp_.cplex.getValue(var);
+    for (int i = 0; i < ilp_.solver.n(); i++)
+    { 
+        double val = ilp_.solver.var_value(i);
         if (val > eps_ || val < -eps_)
         {
             if (ilp_.solPrintType == "json")
@@ -523,17 +335,16 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
                     firstPrint = false;
                 }
                 sol += "\n\t\t\t\t\"";
-                sol += var.getName();
+                sol += ilp_.solver.var_name(i);
                 sol += "\" : ";
             }
             else
             {
                 sol += " ";
-                sol += var.getName();
+                sol += ilp_.solver.var_name(i);
                 sol += "=";
             }
-            if (var.getType() != 2 ||
-                (val + eps_ > int(val - eps_) && val - eps_ < int(val + eps_)))
+            if (ilp_.solver.var_type(i) == VarType::Integer)
             {
                 sol += std::to_string(int(val));
             }
@@ -543,19 +354,19 @@ inline double ILPSolverAdaptor::operator()(const Point &weighting, Point &value,
             }
         }
     }
+
     sol += "\n";
     if (ilp_.solPrintType == "json")
     {
         sol += "\t\t\t}";
     }
 
-    return ilp_.cplex.getValue(singleObj, -1);
-
+    return opti_return.second;
 }
-#endif
 
-template <typename OnlineVertexEnumerator>
-inline void PilpDualBensonSolver<OnlineVertexEnumerator>::Solve(ILP &ilp)
+template <typename OnlineVertexEnumerator, class SolverInterface>
+inline void PilpDualBensonSolver<OnlineVertexEnumerator, SolverInterface>::Solve(
+    IlpInterface<SolverInterface> &ilp)
 {
     clock_t start = clock();
     ilp.startTime = start;
@@ -564,16 +375,16 @@ inline void PilpDualBensonSolver<OnlineVertexEnumerator>::Solve(ILP &ilp)
     Log log;
 
     DualBensonScalarizer<OnlineVertexEnumerator, std::string> dual_benson_solver(
-        ILPSolverAdaptor(ilp, log, epsilon_, solverEps_), ILPSolverPrinter(ilp), ilp.dimension,
-        epsilon_, pEps_, veEps_);
+        ILPSolverAdaptor(ilp, log, epsilon_), ILPSolverPrinter(ilp), ilp.solver.d(), epsilon_,
+        pEps_, veEps_);
 
     dual_benson_solver.Calculate_solutions(frontier);
 
 #ifdef TEST
-    for (int i = 0; i < ilp.dimension; i++)
+    for (int i = 0; i < ilp.solver.d(); i++)
     {
         std::cout << "0";
-        for (int j = 0; j < ilp.dimension; j++)
+        for (int j = 0; j < ilp.solver.d(); j++)
         {
             if (i != j)
             {
@@ -590,12 +401,7 @@ inline void PilpDualBensonSolver<OnlineVertexEnumerator>::Solve(ILP &ilp)
 
     for (auto sol : frontier)
     {
-        Point &point = *(sol.second);
-        Point pointScaled(ilp.dimension);
-        for (int i = 0; i < ilp.dimension; i++)
-        {
-            pointScaled[i] = (point[i] / ilp.relScale[i]) - ilp.offset[i];
-        }
+        Point pointScaled = ilp.solver.rescale(*(sol.second));
         delete sol.second;
         add_solution(sol.first, pointScaled);
     }
@@ -603,8 +409,8 @@ inline void PilpDualBensonSolver<OnlineVertexEnumerator>::Solve(ILP &ilp)
     ilp.logFile << "time: " << (clock() - start) / (double)CLOCKS_PER_SEC << "\n";
     ilp.logFile << "vertex enumeration time: " << dual_benson_solver.vertex_enumeration_time()
                 << "\n";
-    ilp.logFile << "gurobi time: " << log.solver_time << "\n";
-    ilp.logFile << "gurobi solves: " << log.nSolves << "\n";
+    ilp.logFile << "ilp-solver time: " << log.solver_time << "\n";
+    ilp.logFile << "ilp-solver solves: " << log.nSolves << "\n";
     ilp.logFile << "time per solve: " << log.solver_time / log.nSolves << "\n";
 }
 }  // namespace pamilo

@@ -31,13 +31,20 @@ struct IlpInterface {
         if (solPrintType == "json")
         {
             solFile.open(output_name + "_sol.json");
-            solFile << "{\n\t\"solutions\": [";
         }
         else
         {
             solFile.open(output_name + "_sol");
         }
         logFile.open(output_name + "_log");
+    }
+
+
+
+    ~IlpInterface()
+    {
+        solFile.close();
+        logFile.close();
     }
 
     SolverInterface solver;
@@ -49,4 +56,5 @@ struct IlpInterface {
     bool noPreprocessing;
     int startTime;
 };
+
 }  // namespace pamilo

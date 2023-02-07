@@ -130,7 +130,7 @@ public:
                                          "json",
                                          "solution-print-type"};
 
-    ValueArg<int> grb_presovle{"", "grb-presolve", "Arg for grb presolve.", false, -1, "int"};
-    ValueArg<int> grb_lp{"", "grb-lp", "Arg for grb lp method.", false, -1, "int"};
-    ValueArg<int> grb_scale{"", "grb-scale", "Arg for grb scaling.", false, -1, "int"};
+    ValueArg<int> grb_presovle{"", "grb-presolve", "Arg for grb presolve. Default is 0 (off).", false, 1, "int"};
+    ValueArg<int> grb_lp{"", "grb-lp", "Arg for grb lp method.Default is 0 (primal simplex).", false, 0, "int"};
+    ValueArg<int> grb_scale{"", "grb-scale", "Arg for grb scaling. Default is 1.", false, 1, "int"};
 };

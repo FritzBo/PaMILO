@@ -161,6 +161,9 @@ set(SOURCE_FILES
 
 	# Benson Dual
 	"src/generic/benson_dual/ove_fp_v2.cpp"
+
+	### Solver Interfaces
+	"src/pamilo/pilp/grb_interface.cpp"
 )
 
 add_library(pamilo STATIC ${SOURCE_FILES})
