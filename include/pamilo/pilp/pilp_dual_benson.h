@@ -18,7 +18,6 @@
 #include <set>
 #include <typeinfo>
 
-#include <pamilo/pilp/ilp.h>
 #include <pamilo/pilp/ilp_interface.hpp>
 #include <pamilo/pilp/interface_util.hpp>
 

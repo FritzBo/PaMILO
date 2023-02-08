@@ -27,6 +27,7 @@ public:
         cmd.add(grb_lp);
         cmd.add(grb_scale);
 
+        cmd.add(solver_choice);
         cmd.add(output_name);
         cmd.add(epsilon);
         cmd.add(point_epsilon);
@@ -51,16 +52,26 @@ public:
         false, "",       "output"};
 
     ValueArg<double> epsilon{"e",
-                                 "epsilon",
-                                 "Epsilon to be used in floating point calculations.",
-                                 false,
+                             "epsilon",
+                             "Epsilon to be used in floating point calculations.",
+                             false,
+                             1E-6
+                             ,
+                             "epsilon"};
+
+    ValueArg<std::string> solver_choice{
+        "",
+        "solver",
+        "Solver to use for WSS. Choices are gurobi and cplex. Default is "
 #ifdef USE_GRB
-                                 1E-6
-#elif USE_CPLEX
-                                 1E-7
+        "gurobi"
+#else
+        "cplex"
 #endif
-                                 ,
-                                 "epsilon"};
+        ,
+        false,
+        "gurobi",
+        "string"};
 
     ValueArg<double> point_epsilon{
         "p",
@@ -91,12 +102,12 @@ public:
         "vertex-enumerator-epsilon"};
 
     ValueArg<std::string> ve{"E",
-                                 "vertex-enumeration",
-                                 "Which vertex enumeration algorithm is to be used. Options "
-                                 "are: cdd, default",
-                                 false,
-                                 "default",
-                                 "vertex-enumeration"};
+                             "vertex-enumeration",
+                             "Which vertex enumeration algorithm is to be used. Options "
+                             "are: cdd, default",
+                             false,
+                             "default",
+                             "vertex-enumeration"};
 
     ValueArg<int> solver_threads_limit{
         "t",
@@ -106,8 +117,8 @@ public:
         1,
         "solver-thread-limit"};
 
-    UnlabeledValueArg<std::string> instance_name{"instance", "Name of the instance file.", true,
-                                                     "", "instance"};
+    UnlabeledValueArg<std::string> instance_name{"instance", "Name of the instance file.", true, "",
+                                                 "instance"};
 
     SwitchArg no_preprocessing{
         "", "no-pre",
@@ -123,14 +134,16 @@ public:
         false};
 
     ValueArg<std::string> print_type{"f",
-                                         "solution-print-type",
-                                         "Which output format for the solution file is to be "
-                                         "used. Options are: json (default) and polyscip",
-                                         false,
-                                         "json",
-                                         "solution-print-type"};
+                                     "solution-print-type",
+                                     "Which output format for the solution file is to be "
+                                     "used. Options are: json (default) and polyscip",
+                                     false,
+                                     "json",
+                                     "solution-print-type"};
 
-    ValueArg<int> grb_presovle{"", "grb-presolve", "Arg for grb presolve. Default is 0 (off).", false, 1, "int"};
-    ValueArg<int> grb_lp{"", "grb-lp", "Arg for grb lp method.Default is 0 (primal simplex).", false, 0, "int"};
+    ValueArg<int> grb_presovle{
+        "", "grb-presolve", "Arg for grb presolve. Default is 0 (off).", false, 1, "int"};
+    ValueArg<int> grb_lp{"",    "grb-lp", "Arg for grb lp method.Default is 0 (primal simplex).",
+                         false, 0,        "int"};
     ValueArg<int> grb_scale{"", "grb-scale", "Arg for grb scaling. Default is 1.", false, 1, "int"};
 };

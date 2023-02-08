@@ -18,13 +18,20 @@ set(module_dir "${PROJECT_SOURCE_DIR}/cmake")
 list(INSERT CMAKE_MODULE_PATH 0 "${module_dir}" )
 
 set(LP_SOLVER "Gurobi" CACHE STRING "Choose the lp solver.")
-set_property(CACHE LP_SOLVER PROPERTY STRINGS "Gurobi" "Cplex")
+set_property(CACHE LP_SOLVER PROPERTY STRINGS "Gurobi" "Cplex" "Both")
 
 if("${LP_SOLVER}" STREQUAL "Gurobi")
     add_compile_options(-DUSE_GRB)
 	set(USE_GRB ON)
+	set(USE_CPLEX OFF)
 elseif("${LP_SOLVER}" STREQUAL "Cplex")
-    add_compile_options(-DUSE_CPLEX)
+	add_compile_options(-DUSE_CPLEX)
+	set(USE_CPLEX ON)
+	set(USE_GRB OFF)
+elseif("${LP_SOLVER}" STREQUAL "Both")
+	add_compile_options(-DUSE_GRB)
+	set(USE_GRB ON)
+	add_compile_options(-DUSE_CPLEX)
 	set(USE_CPLEX ON)
 endif()
 
@@ -59,7 +66,9 @@ if(USE_GRB)
 		HINTS $ENV{GUROBI_HOME}
 		PATH_SUFFIXES lib)
 
-elseif(USE_CPLEX)
+endif()
+
+if(USE_CPLEX)
 
 	find_path(CPLEX
 		NAMES cplex
@@ -121,7 +130,8 @@ include_directories(cli)
 
 if(USE_GRB)
 	include_directories(${GUROBI_INCLUDE_DIR})
-elseif(USE_CPLEX)
+endif()
+if(USE_CPLEX)
 	include_directories(${CPLEX_INCLUDE_DIR})
 	include_directories(${CONCERT_INCLUDE_DIR})
 endif()
@@ -139,9 +149,6 @@ set(SOURCE_FILES
 	"include/pamilo/basic/lex_point_comparator.h"
 	"include/pamilo/basic/abstract_solver.h"
 
-	# Benchmarks
-	"include/pamilo/benchmarks/lp_parser.h"
-
 	# Benson Dual
 	"include/pamilo/generic/benson_dual/abstract_online_vertex_enumerator.h"
 	"include/pamilo/generic/benson_dual/dual_benson_scalarizer.h"
@@ -152,18 +159,15 @@ set(SOURCE_FILES
 
 	# Parametric Integer Linear Programming
 	"include/pamilo/pilp/pilp_dual_benson.h"
-	"include/pamilo/pilp/ilp.h"
 
 	#### Sources ####
-
-	# Benchmarks
-	"src/benchmarks/lp_parser.cpp"
 
 	# Benson Dual
 	"src/generic/benson_dual/ove_fp_v2.cpp"
 
 	### Solver Interfaces
 	"src/pamilo/pilp/grb_interface.cpp"
+	"src/pamilo/pilp/cplex_interface.cpp"
 )
 
 add_library(pamilo STATIC ${SOURCE_FILES})
@@ -196,7 +200,8 @@ target_link_libraries(pamilo_cli pamilo)
 if(USE_GRB)
 	target_link_libraries(pamilo_cli ${GUROBI_CXX_LIB})
 	target_link_libraries(pamilo_cli ${GUROBI_LIB})
-elseif(USE_CPLEX)
+endif()
+if(USE_CPLEX)
 	target_link_libraries(pamilo_cli "${ILOCPLEX_LIB}")
 	target_link_libraries(pamilo_cli "${CONCERT_LIB}")
 	target_link_libraries(pamilo_cli "${CPLEX_LIB}")

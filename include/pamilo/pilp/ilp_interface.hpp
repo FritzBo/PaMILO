@@ -12,6 +12,7 @@
 
 #include <modules/pilp_benson_args.hpp>
 #include <string>
+#include <fstream>
 
 namespace pamilo {
 template <class SolverInterface>

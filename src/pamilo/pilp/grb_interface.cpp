@@ -8,6 +8,7 @@
  * copy of which can be found in the file LICENSE-academic.txt.
  *
  */
+#ifdef USE_GRB
 
 #include <pamilo/pilp/grb_interface.hpp>
 
@@ -126,7 +127,7 @@ void GRBInterface::modify_objectives(const Point &scale, const Point &offset)
     m_scale = scale;
     m_offset = offset;
 
-    for (int i = 0; i < m_d; i++)
+    for (unsigned int i = 0; i < m_d; i++)
     {
         m_scaled_objectives_lp[i] =
             (m_sense_multi[i] * m_og_objectives_lp[i] + m_offset[i]) * m_scale[i];
@@ -143,7 +144,7 @@ std::pair<SolverStatus, double> GRBInterface::wss(const Point &weighting)
 {
     assert(weighting.dimension() == m_d);
     GRBLinExpr scalarized_wss;
-    for (int i = 0; i < m_d; i++)
+    for (unsigned int i = 0; i < m_d; i++)
     {
         scalarized_wss += m_scaled_objectives_lp[i] * weighting[i];
     }
@@ -178,7 +179,7 @@ std::pair<SolverStatus, double> GRBInterface::lex_wss(const Point &weighting,
     assert(weighting.dimension() == m_d);
 
     GRBLinExpr scalarized_wss;
-    for (int i = 0; i < m_d; i++)
+    for (unsigned int i = 0; i < m_d; i++)
     {
         m_lex_lp.set(GRB_IntParam_ObjNumber, i);
         m_lex_lp.set(GRB_DoubleAttr_ObjNWeight, rel_weight[i]);
@@ -211,3 +212,5 @@ std::pair<SolverStatus, double> GRBInterface::lex_wss(const Point &weighting,
 }
 
 }  // namespace pamilo
+
+#endif

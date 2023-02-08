@@ -25,7 +25,6 @@ using TCLAP::UnlabeledValueArg;
 using TCLAP::ValueArg;
 
 #include <pamilo/basic/point.h>
-#include <pamilo/benchmarks/lp_parser.h>
 #include <pamilo/pilp/pilp_dual_benson.h>
 
 #ifdef USE_CDD
@@ -35,13 +34,71 @@ using pamilo::OnlineVertexEnumeratorCDD;
 #include <pamilo/generic/benson_dual/ove_fp_v2.h>
 
 using pamilo::GraphlessOVE;
-using pamilo::LPparser;
 
 using pamilo::PilpDualBensonSolver;
 using pamilo::Point;
 
+#ifdef USE_CPLEX
+#include <pamilo/pilp/cplex_interface.hpp>
+#endif
+
+#ifdef USE_GRB
 #include <pamilo/pilp/grb_interface.hpp>
+#endif
+
 #include <pamilo/pilp/ilp_interface.hpp>
+
+/**
+ * @brief Templated helper to avoid spaghetti
+ *
+ * @tparam SolverInterface
+ * @param args
+ */
+template <class SolverInterface>
+inline void start_algo(PilpBensonArgs &args, list<pair<const string, const Point>> &solutions)
+{
+    auto ve = args.ve.getValue();
+    auto epsilon = args.epsilon.getValue();
+    auto veEpsilon = args.vertex_enumerator_epsilon.getValue();
+
+    pamilo::IlpInterface<SolverInterface> ilp(args);
+
+    if (ilp.solPrintType == "json")
+    {
+        ilp.solFile << "{\n\t\"solutions\": [";
+    }
+
+#ifdef USE_CDD
+    if (ve == "cdd")
+    {
+        PilpDualBensonSolver<OnlineVertexEnumeratorCDD, pamilo::GRBInterface> solver(epsilon,
+                                                                                     veEpsilon);
+        solver.Solve(ilp);
+
+        solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
+                          solver.solutions().cend());
+    }
+    else
+#endif
+    {
+        if (ve == "cdd")
+        {
+            std::cerr << "cdd is not activated in cmake!\n";
+            exit(0);
+        }
+
+        PilpDualBensonSolver<GraphlessOVE, SolverInterface> solver(epsilon, veEpsilon);
+
+        solver.Solve(ilp);
+
+        solutions.insert(solutions.begin(), solver.solutions().cbegin(), solver.solutions().cend());
+
+        if (ilp.solPrintType == "json")
+        {
+            ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions.size() << "\n}\n";
+        }
+    }
+}
 
 void PilpBensonModule::perform(int argc, char **argv)
 {
@@ -49,49 +106,30 @@ void PilpBensonModule::perform(int argc, char **argv)
     {
         PilpBensonArgs args(argc, argv);
 
-        auto ve = args.ve.getValue();
-        auto epsilon = args.epsilon.getValue();
-        auto veEpsilon = args.vertex_enumerator_epsilon.getValue();
-
         try
         {
-            pamilo::IlpInterface<pamilo::GRBInterface> ilp(args);
-
-            if (ilp.solPrintType == "json")
+            if (args.solver_choice.getValue() == "gurobi")
             {
-                ilp.solFile << "{\n\t\"solutions\": [";
+#ifndef USE_GRB
+                std::cerr << "Gurobi is not enabled in CMake!" << std::endl;
+                exit(-1);
+#else
+                start_algo<pamilo::GRBInterface>(args, solutions_);
+#endif
             }
-
-#ifdef USE_CDD
-            if (ve == "cdd")
+            else if (args.solver_choice.getValue() == "cplex")
             {
-                PilpDualBensonSolver<OnlineVertexEnumeratorCDD, pamilo::GRBInterface> solver(
-                    epsilon, veEpsilon);
-                solver.Solve(ilp);
-
-                solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
-                                  solver.solutions().cend());
+#ifndef USE_CPLEX
+                std::cerr << "CPLEX is not enabled in CMake!" << std::endl;
+                exit(-1);
+#else
+                start_algo<pamilo::CPLEXInterface>(args, solutions_);
+#endif
             }
             else
-#endif
             {
-                if (ve == "cdd")
-                {
-                    std::cerr << "cdd is not activated in cmake!\n";
-                    exit(0);
-                }
-
-                PilpDualBensonSolver<GraphlessOVE, pamilo::GRBInterface> solver(epsilon, veEpsilon);
-
-                solver.Solve(ilp);
-
-                solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
-                                  solver.solutions().cend());
-
-                if (ilp.solPrintType == "json")
-                {
-                    ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions_.size() << "\n}\n";
-                }
+                std::cerr << "No valid solver: " << args.solver_choice.getValue() << std::endl;
+                exit(-1);
             }
         }
 #ifdef USE_GRB
@@ -112,7 +150,8 @@ void PilpBensonModule::perform(int argc, char **argv)
                           << e.getMessage() << " with error code " << e.getErrorCode() << std::endl;
             }
         }
-#elif USE_CPLEX
+#endif
+#ifdef USE_CPLEX
         catch (IloCplex::Exception &e)
         {
             std::cerr << "Cplex Exception:\n"
