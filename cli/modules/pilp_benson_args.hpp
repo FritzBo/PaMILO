@@ -18,6 +18,10 @@ using TCLAP::SwitchArg;
 using TCLAP::UnlabeledValueArg;
 using TCLAP::ValueArg;
 
+/**
+ * @brief Class to allow easy exchange of args between objects or functions
+ *
+ */
 class PilpBensonArgs
 {
 public:
@@ -51,13 +55,8 @@ public:
         "o",   "output", "Basename of the output files. This defaults to <instance>.",
         false, "",       "output"};
 
-    ValueArg<double> epsilon{"e",
-                             "epsilon",
-                             "Epsilon to be used in floating point calculations.",
-                             false,
-                             1E-6
-                             ,
-                             "epsilon"};
+    ValueArg<double> epsilon{"e",   "epsilon", "Epsilon to be used in floating point calculations.",
+                             false, 1E-6,      "epsilon"};
 
     ValueArg<std::string> solver_choice{
         "",

@@ -10,7 +10,7 @@
  */
 #ifdef USE_CPLEX
 
-#include <pamilo/pilp/cplex_interface.hpp>
+#    include <pamilo/pilp/cplex_interface.hpp>
 
 namespace pamilo {
 CPLEXInterface::CPLEXInterface(PilpBensonArgs &args)

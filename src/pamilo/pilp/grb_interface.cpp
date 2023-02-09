@@ -10,10 +10,10 @@
  */
 #ifdef USE_GRB
 
-#include <pamilo/pilp/grb_interface.hpp>
+#    include <pamilo/pilp/grb_interface.hpp>
 
-#include <algorithm>
-#include <fstream>
+#    include <algorithm>
+#    include <fstream>
 
 namespace pamilo {
 

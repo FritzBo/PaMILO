@@ -15,6 +15,12 @@
 #include <fstream>
 
 namespace pamilo {
+
+/**
+ * @brief Class to manage ilp access
+ * 
+ * @tparam SolverInterface 
+ */
 template <class SolverInterface>
 struct IlpInterface {
     IlpInterface(PilpBensonArgs &args)
@@ -39,8 +45,6 @@ struct IlpInterface {
         }
         logFile.open(output_name + "_log");
     }
-
-
 
     ~IlpInterface()
     {

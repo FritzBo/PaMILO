@@ -318,9 +318,12 @@ inline double ILPSolverAdaptor<SolverInterface>::operator()(const Point &weighti
         sol += "\n\t\t\t\"variables\" : {";
     }
     bool firstPrint = true;
+
+    // Preload values for faster iterating
+    auto var_values = ilp_.solver.var_values();
     for (int i = 0; i < ilp_.solver.n(); i++)
     { 
-        double val = ilp_.solver.var_value(i);
+        double val = var_values[i];
         if (val > eps_ || val < -eps_)
         {
             if (ilp_.solPrintType == "json")
