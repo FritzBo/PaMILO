@@ -313,16 +313,18 @@ inline double ILPSolverAdaptor<SolverInterface>::operator()(const Point &weighti
         exit(0);
     }
 
+    std::stringstream sol_buffer;
+
     if (ilp_.solPrintType == "json")
     {
-        sol += "\n\t\t\t\"variables\" : {";
+        sol_buffer << "\n\t\t\t\"variables\" : {";
     }
     bool firstPrint = true;
 
     // Preload values for faster iterating
     auto var_values = ilp_.solver.var_values();
     for (int i = 0; i < ilp_.solver.n(); i++)
-    { 
+    {
         double val = var_values[i];
         if (val > eps_ || val < -eps_)
         {
@@ -330,38 +332,39 @@ inline double ILPSolverAdaptor<SolverInterface>::operator()(const Point &weighti
             {
                 if (!firstPrint)
                 {
-                    sol += ",";
+                    sol_buffer << ",";
                 }
                 else
                 {
                     firstPrint = false;
                 }
-                sol += "\n\t\t\t\t\"";
-                sol += ilp_.solver.var_name(i);
-                sol += "\" : ";
+                sol_buffer << "\n\t\t\t\t\"";
+                sol_buffer << ilp_.solver.var_name(i);
+                sol_buffer << "\" : ";
             }
             else
             {
-                sol += " ";
-                sol += ilp_.solver.var_name(i);
-                sol += "=";
+                sol_buffer << " ";
+                sol_buffer << ilp_.solver.var_name(i);
+                sol_buffer << "=";
             }
             if (ilp_.solver.var_type(i) == VarType::Integer)
             {
-                sol += std::to_string(int(val));
+                sol_buffer << static_cast<int>(val);
             }
             else
             {
-                sol += std::to_string(val);
+                sol_buffer << val;
             }
         }
     }
 
-    sol += "\n";
+    sol_buffer << "\n";
     if (ilp_.solPrintType == "json")
     {
-        sol += "\t\t\t}";
+        sol_buffer << "\t\t\t}";
     }
+    sol += sol_buffer.str();
 
     return opti_return.second;
 }
