@@ -15,6 +15,20 @@ Bökler, Fritz and Mutzel, Petra: Output-Sensitive Algorithms for Enumerating th
 For support please contact Mirko H. Wagner (mirwagner@uos.de), Levin Nemesch (lnemesch@uos.de),
  or Fritz Bökler (fboekler@uos.de).
 
+If you use PaMILO, please cite the [preprint](https://arxiv.org/abs/2207.09155) as
+```
+@misc{pamilo,
+  title         = {PaMILO: A Solver for Multi-Objective Mixed Integer Linear Optimization and Beyond},
+  author        = {Fritz B{\"o}kler and Levin Nemesch and Mirko H. Wagner},
+  year          = {2023},
+  eprint        = {2207.09155},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.DM},
+  note          = {Preprint},
+  keywords      = {sci}
+}
+```
+
 # Installation
 ## UNIX/Linux
 ```
@@ -24,19 +38,13 @@ cmake .
 make
 ```
 
+Use ``ccmake .`` to enable more options.
+
 ## Windows
+
+PaMILO should also work under Windows.
 As none of the authors of this program are experts in Windows whatsoever,
-please feel free to let us know if the configuration and compilation process
-can be made more eﬀicient or the descriptions more precise.
-
-
- - Unzip pamilo.zip and go into the directory it is unzipped into.
- - Run `<path to cmake>\cmake.exe .` . If you have a standard installation of CPLEX this should suﬀice, but sometimes it does not. Refer to
-the Gurobi section below.
-
- - Start Visual Studio and build pamilo_cli in Release mode.
- - Go to `<path to pamilo>\Release` and run `pamilo_cli.exe` (for detailed
-usage see below).
+please feel free to suggest us a step-by-step installation guide.
 
 ## CMake
 Version 3.18 or higher is needed.
@@ -44,8 +52,9 @@ Version 3.18 or higher is needed.
 ## Solver
 PaMILO needs either CPLEX or Gurobi for LP/MILP/MIQP solving.
 Capabilities of PaMILO depend on the underlying solver.
-At the moment (11.2022), only Gurobi offers the option of nonconvex quadratic problem solving for multiobjective optimization.
+At the moment (04.2023), only Gurobi offers the option of nonconvex quadratic problem solving for multiobjective optimization.
 
+You have to enable solvers in cmake
 You can switch between the solvers in cmake, default is Gurobi.
 
 ### Gurobi
@@ -57,17 +66,15 @@ Otherwise you have to set `GUROBI_CXX_LIB` and `GUROBI_LIB` to the libraries `li
 
 ### CPLEX
 Version 12.9 or higher is needed, as we rely on the multiobjective optimization
-features introduced in in 12.9.
+features introduced in 12.9.
 
 If CPLEX is installed in a default location (`/opt/ibm/ILOG/CPLEX_Studio12<9+>` or `C:\Program Files\IBM\ILOG\CPLEX_Studio12<9+>`), it should be found automatically. If it is installed in such a way that the directories `<path to cplex>/concert` and `<path to cplex>/cplex` are present you can set CPLEX to the `<path to cplex>`. Otherwise, you have to set `CONCERT_INCLUDE_DIR` and `CPLEX_INCLUDE_DIR` to the directories containing `ilconcert/iloenv.h` and `ilcplex/ilocplex.h` respectively and `CONCERT_LIB`, `CPLEX_LIB`, and `ILOCPLEX_LIB` to the corresponding static libraries. Furthermore, on UNIX CPLEX needs the libraries `dl` and `pthread`.
 
 ## Vertex Enumeration
 
 PaMILO has an onboard vertex enumeration.
-As an alternative, PaMILO is also compatible with [cdd](https://people.inf.ethz.ch/fukudak/cdd_home/).
+As an alternative, PaMILO is also compatible with [cdd](https://people.inf.ethz.ch/fukudak/cdd_home/) from [Komei Fukuda]{https://people.inf.ethz.ch/fukudak/}.
 For numerical challenging programs, cdd might be more stable.
-
-Todo Fukuda citen und anschreiben
 
 To use cdd, install it on your system and then simply enable it in cmake.
 If installed in a default location, it should be found automatically.
