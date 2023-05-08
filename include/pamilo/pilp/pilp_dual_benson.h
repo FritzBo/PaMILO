@@ -25,6 +25,8 @@
 #include <pamilo/basic/point.h>
 #include <pamilo/generic/benson_dual/dual_benson_scalarizer.h>
 
+#include <chrono>
+
 namespace pamilo {
 
 /**
@@ -219,6 +221,8 @@ private:
     Log &log_;
 
     double eps_;
+
+    decltype(std::chrono::steady_clock::now()) created = std::chrono::steady_clock::now();
 };
 
 template <typename OnlineVertexEnumerator, class SolverInterface>
@@ -359,10 +363,16 @@ inline double ILPSolverAdaptor<SolverInterface>::operator()(const Point &weighti
         }
     }
 
-    sol_buffer << "\n";
     if (ilp_.solPrintType == "json")
     {
-        sol_buffer << "\t\t\t}";
+        sol_buffer << ",\n\t\t\t\"since start\" : "
+                   << std::chrono::duration_cast<std::chrono::microseconds>(
+                          std::chrono::steady_clock::now() - created).count()
+                   << "\n\t\t\t}";
+    }
+    else
+    {
+        sol_buffer << "\n";
     }
     sol += sol_buffer.str();
 
