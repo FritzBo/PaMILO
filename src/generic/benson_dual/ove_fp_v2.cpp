@@ -340,6 +340,7 @@ bool GraphlessOVE::check_adjacent(GraphlessPoint &p1, const GraphlessPoint &p2)
 #endif
 
     // TODO: change back to 3
+    // (This was done in commit a90fa51 (03.07.2020))
     if (dimension_ <= 2)
     {
         list<int> inequality_intersection;

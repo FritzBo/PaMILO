@@ -10,6 +10,7 @@
  */
 
 #include "pilp_benson_module.h"
+#include "pilp_benson_args.hpp"
 
 using std::list;
 using std::pair;
@@ -24,155 +25,139 @@ using TCLAP::UnlabeledValueArg;
 using TCLAP::ValueArg;
 
 #include <pamilo/basic/point.h>
-#include <pamilo/benchmarks/lp_parser.h>
 #include <pamilo/pilp/pilp_dual_benson.h>
 
+#ifdef USE_CDD
+#    include <pamilo/generic/benson_dual/ove_cdd.h>
+using pamilo::OnlineVertexEnumeratorCDD;
+#endif
 #include <pamilo/generic/benson_dual/ove_fp_v2.h>
 
 using pamilo::GraphlessOVE;
-using pamilo::LPparser;
+
 using pamilo::PilpDualBensonSolver;
 using pamilo::Point;
+
+#ifdef USE_CPLEX
+#include <pamilo/pilp/cplex_interface.hpp>
+#endif
+
+#ifdef USE_GRB
+#include <pamilo/pilp/grb_interface.hpp>
+#endif
+
+#include <pamilo/pilp/ilp_interface.hpp>
+
+/**
+ * @brief Templated helper to avoid spaghetti
+ *
+ * @tparam SolverInterface
+ * @param args
+ */
+template <class SolverInterface>
+inline void start_algo(PilpBensonArgs &args, list<pair<const string, const Point>> &solutions)
+{
+    auto ve = args.ve.getValue();
+    auto epsilon = args.epsilon.getValue();
+    auto veEpsilon = args.vertex_enumerator_epsilon.getValue();
+
+    pamilo::IlpInterface<SolverInterface> ilp(args);
+
+    if (ilp.solPrintType == "json")
+    {
+        ilp.solFile << "{\n\t\"solutions\": [";
+    }
+
+#ifdef USE_CDD
+    if (ve == "cdd")
+    {
+        PilpDualBensonSolver<OnlineVertexEnumeratorCDD, pamilo::GRBInterface> solver(epsilon,
+                                                                                     veEpsilon);
+        solver.Solve(ilp);
+
+        solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
+                          solver.solutions().cend());
+    }
+    else
+#endif
+    {
+        if (ve == "cdd")
+        {
+            std::cerr << "cdd is not activated in cmake!\n";
+            exit(0);
+        }
+
+        PilpDualBensonSolver<GraphlessOVE, SolverInterface> solver(epsilon, veEpsilon);
+
+        solver.Solve(ilp);
+
+        solutions.insert(solutions.begin(), solver.solutions().cbegin(), solver.solutions().cend());
+
+        if (ilp.solPrintType == "json")
+        {
+            ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions.size() << "\n}\n";
+        }
+    }
+}
 
 void PilpBensonModule::perform(int argc, char **argv)
 {
     try
     {
-        CmdLine cmd("Dual Benson to find the Pareto-frontier of the parametric integer linear "
-                    "program problem.",
-                    ' ', "0.1");
-
-        ValueArg<string> output_name_argument(
-            "o", "output", "Basename of the output files. This defaults to <instance>.", false, "",
-            "output");
-
-        ValueArg<double> epsilon_argument("e", "epsilon",
-                                          "Epsilon to be used in floating point calculations.",
-                                          false, 1E-6, "epsilon");
-
-        ValueArg<double> point_epsilon_argument(
-            "p", "point-epsilon",
-            "Epsilon to decide if a potential new extreme point is already represented by an old "
-            "one via euclidean distance. A value < 0 deactivates point pruning. Deacticvated by "
-            "default",
-            false, -1, "point-epsilon");
-
-        ValueArg<double> solver_epsilon_argument(
-            "s", "solver-epsilon",
-            "Epsilon to be used in floating point calculations of the solver. This defaults to -1 "
-            "(use default eps of solver).",
-            false, -1, "solver-epsilon");
-
-        ValueArg<double> vertex_enumerator_epsilon_argument(
-            "v", "vertex-enumerator-epsilon",
-            "Epsilon to be used in floating point calculations of the vertex enumerator. This "
-            "defaults to -1 (use default epsilon of vertex enumerator).",
-            false, -1, "vertex-enumerator-epsilon");
-
-        ValueArg<int> solver_threads_limit(
-            "t", "solver-thread-limit",
-            "Maximum number of threads the solver is allowed to use. This defaults to 1.", false, 1,
-            "solver-thread-limit");
-
-        UnlabeledValueArg<string> instance_name_argument("instance", "Name of the instance file.",
-                                                         true, "", "instance");
-
-        SwitchArg no_preprocessing_argument(
-            "", "no-pre",
-            "Don't run preprocessing. Only use this, if you know all objectives are in roughly the "
-            "same range and either the lowest or the highest value in each objective is close to "
-            "0.",
-            false);
-
-        SwitchArg non_convex_argument(
-            "", "non-con",
-            "Allows Gurobi to also attempt solving non-convex quadratic problems. By default this "
-            "is off. Non-convex problems might have especially high runtime.",
-            false);
-
-        ValueArg<string> print_type_argument("f", "solution-print-type",
-                                             "Which output format for the solution file is to be "
-                                             "used. Options are: json (default) and polyscip",
-                                             false, "json", "solution-print-type");
-
-        cmd.add(output_name_argument);
-        cmd.add(epsilon_argument);
-        cmd.add(point_epsilon_argument);
-        cmd.add(solver_epsilon_argument);
-        cmd.add(vertex_enumerator_epsilon_argument);
-        cmd.add(solver_threads_limit);
-        cmd.add(instance_name_argument);
-        cmd.add(no_preprocessing_argument);
-        cmd.add(non_convex_argument);
-        cmd.add(print_type_argument);
-
-        cmd.parse(argc, argv);
-
-        ILP ilp;
-
-        ilp.env.set(GRB_IntParam_LogToConsole, 0);
-        ilp.env.set(GRB_IntParam_Threads,
-                    solver_threads_limit.getValue() <= 1 ? 1 : solver_threads_limit.getValue());
-        
-        if (non_convex_argument.getValue()) {
-            ilp.env.set(GRB_IntParam_NonConvex, 2);
-        }
-
-        string instance_name = instance_name_argument.getValue();
-        double epsilon = epsilon_argument.getValue();
-        double pEpsilon = point_epsilon_argument.getValue();
-        double sEpsilon = solver_epsilon_argument.getValue();
-        double veEpsilon = vertex_enumerator_epsilon_argument.getValue();
-        if (veEpsilon = -1)
-        {
-            veEpsilon = epsilon;
-        }
-        string output_name = output_name_argument.getValue();
-        bool no_preprocessing = no_preprocessing_argument.getValue();
-        string solPrintType = print_type_argument.getValue();
-
-        if (output_name == "")
-        {
-            output_name = instance_name;
-        }
-        ilp.solFile.open(output_name + "_sol");
-        ilp.solPrintType = solPrintType;
-        if (ilp.solPrintType == "json")
-        {
-            ilp.solFile << "{\n\t\"solutions\": [";
-        }
-        ilp.logFile.open(output_name + "_log");
-        // Gurobi appends its logs, so we have to clean up before starting:
-        std::ofstream tmpCleaner;
-        tmpCleaner.open(output_name + "_gurobi");
-        tmpCleaner.close();
-        ilp.grbFileName = output_name + "_gurobi";
-        ilp.noPreprocessing = no_preprocessing;
-
-        LPparser parser;
+        PilpBensonArgs args(argc, argv);
 
         try
         {
-            parser.getILP(instance_name, ilp);
-
+            if (args.solver_choice.getValue() == "gurobi")
             {
-                PilpDualBensonSolver<GraphlessOVE> solver(epsilon, pEpsilon, veEpsilon, sEpsilon);
-                solver.Solve(ilp);
-
-                solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
-                                  solver.solutions().cend());
+#ifndef USE_GRB
+                std::cerr << "Gurobi is not enabled in CMake!" << std::endl;
+                exit(-1);
+#else
+                start_algo<pamilo::GRBInterface>(args, solutions_);
+#endif
+            }
+            else if (args.solver_choice.getValue() == "cplex")
+            {
+#ifndef USE_CPLEX
+                std::cerr << "CPLEX is not enabled in CMake!" << std::endl;
+                exit(-1);
+#else
+                start_algo<pamilo::CPLEXInterface>(args, solutions_);
+#endif
+            }
+            else
+            {
+                std::cerr << "No valid solver: " << args.solver_choice.getValue() << std::endl;
+                exit(-1);
             }
         }
+#ifdef USE_GRB
         catch (GRBException &e)
         {
-            std::cerr << "Gurobi Exception:\n" << e.getMessage() << std::endl;
+            if ((e.getErrorCode() == GRB_ERROR_Q_NOT_PSD) ||
+                (e.getErrorCode() == GRB_ERROR_QCP_EQUALITY_CONSTRAINT))
+            {
+                std::cerr << "Gurobi Exception:\n"
+                          << e.getMessage()
+                          << "\n\nSet --non-con as arg for PaMILO to enable quadratic "
+                             "non-convex optimization."
+                          << std::endl;
+            }
+            else
+            {
+                std::cerr << "Gurobi Exception:\n"
+                          << e.getMessage() << " with error code " << e.getErrorCode() << std::endl;
+            }
         }
-        if (ilp.solPrintType == "json")
+#endif
+#ifdef USE_CPLEX
+        catch (IloCplex::Exception &e)
         {
-            ilp.solFile << "\n\t],\n\t\"solutionCount\" : " << solutions_.size() << "\n}\n";
+            std::cerr << "Cplex Exception:\n"
+                      << e.getMessage() << " with status " << e.getStatus() << std::endl;
         }
-        ilp.solFile.close();
-        ilp.logFile.close();
+#endif
     }
     catch (ArgException &e)
     {
