@@ -73,7 +73,7 @@ If CPLEX is installed in a default location (`/opt/ibm/ILOG/CPLEX_Studio12<9+>` 
 ## Vertex Enumeration
 
 PaMILO has an onboard vertex enumeration.
-As an alternative, PaMILO is also compatible with [cdd](https://people.inf.ethz.ch/fukudak/cdd_home/) from [Komei Fukuda]{https://people.inf.ethz.ch/fukudak/}.
+As an alternative, PaMILO is also compatible with [cdd](https://people.inf.ethz.ch/fukudak/cdd_home/) from [Komei Fukuda](https://people.inf.ethz.ch/fukudak/).
 For numerical challenging programs, cdd might be more stable.
 
 To use cdd, install it on your system and then simply enable it in cmake.
@@ -101,7 +101,7 @@ on UNIX and an empty string on Windows.
 For a list of all parameters with short explanations, use `<pamilo_cli> -h`.
 
 ## Instance format
-The format of an instance needs to be supported by Gurobi. ([Supported formats](https://www.gurobi.com/documentation/9.5/refman/model_file_formats.html)).
+The format of an instance needs to be supported by Gurobi or CPLEX. ([Supported formats for Gurobi](https://www.gurobi.com/documentation/9.5/refman/model_file_formats.html)).
 All multi-objective parameters (Priority, Weight, AbsTol, and RelTol) are overwritten by PaMILO.
 In some formats (for example `.lp` for Gurobi) the parser still needs those fields, just insert some dummy values in this case.
 If the demand is there, this could be changed so that tolerances are taken into account.
@@ -126,6 +126,18 @@ Additionally, a single field `solutionCount` at the end shows the number of extr
 
 If you prefer any other solution format let us know.
 
+### Test Instance
+
+In the ```instances``` folder you can find the instance ```ap_3_40_0.lp``` to test PaMILO.
+(This is an assignment problem with 3 objectives.)
+Run
+```
+<path to>/pamilo_cli -o ./test_output <path to>/instances/ap_3_40_0.lp
+```
+The output on your console should be a list of the extreme points closed by the total number of extreme points.
+Furthermore, the 3 files ```test_output_sol.json```, ```test_output_log``` and ```test_output_gurobi``` (or ```test_output_cplex```) should appear in your working directory.
+
+
 ## Notes on MIQP
 
 * Solvers only allow quadratic terms in constraints, but not in objectives.
@@ -135,4 +147,4 @@ If you prefer any other solution format let us know.
   2. Add a new constraint $f_i(x)=z_i$ for each objective
   3. Replace each objective function $f_i(x)$ by $z_i$
 
-* If you attempt to solve a non-convex QP in Gurobi, you need to add the flag `--non-con`.
+* If you attempt to solve a non-convex QP while using Gurobi, you need to add the flag `--non-con` to your call to PaMILO.
