@@ -54,8 +54,8 @@ PaMILO needs either CPLEX or Gurobi for LP/MILP/MIQP solving.
 Capabilities of PaMILO depend on the underlying solver.
 At the moment (04.2023), only Gurobi offers the option of nonconvex quadratic problem solving for multiobjective optimization.
 
-You have to enable solvers in cmake
-You can switch between the solvers in cmake, default is Gurobi.
+You can switch between the solvers in cmake.
+The default solver is Gurobi, alternative options are CPLEX or both together.
 
 ### Gurobi
 Version 8.0 or higher is needed, as we rely on the multi-objective optimization
