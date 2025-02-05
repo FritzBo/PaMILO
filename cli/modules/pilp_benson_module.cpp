@@ -71,11 +71,11 @@ inline void start_algo(PilpBensonArgs &args, list<pair<const string, const Point
 #ifdef USE_CDD
     if (ve == "cdd")
     {
-        PilpDualBensonSolver<OnlineVertexEnumeratorCDD, pamilo::GRBInterface> solver(epsilon,
+        PilpDualBensonSolver<OnlineVertexEnumeratorCDD, SolverInterface> solver(epsilon,
                                                                                      veEpsilon);
         solver.Solve(ilp);
 
-        solutions_.insert(solutions_.begin(), solver.solutions().cbegin(),
+        solutions.insert(solutions.begin(), solver.solutions().cbegin(),
                           solver.solutions().cend());
     }
     else

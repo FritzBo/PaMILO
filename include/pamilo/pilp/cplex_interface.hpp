@@ -165,7 +165,7 @@ public:
      */
     inline double obj_value(int d) const
     {
-        assert(d >= 0 d < m_d);
+        assert(d >= 0 && d < m_d);
         return m_cplex.getValue(m_scaled_obj.getCriterion(d));
     }
 

@@ -169,7 +169,8 @@ public:
      */
     inline double obj_value(int d) const
     {
-        assert(d >= 0 d < m_d);
+        assert(d >= 0 && d < m_d);
+
         if (m_last_is_normal)
         {
             return m_scaled_objectives_lp[d].getValue();

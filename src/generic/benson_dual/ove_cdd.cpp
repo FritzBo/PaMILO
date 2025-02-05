@@ -104,7 +104,7 @@ void OnlineVertexEnumeratorCDD::add_hyperplane(Point &vertex, Point &normal, dou
     dd_MatrixAppendTo(&h_representation_, new_equality);
 
     new_face = dd_CopyMatrix(h_representation_);
-    set_addelem(new_face->linset, new_face->rowsize);
+    set_addelem(new_face->linset, new_face->rowsize); // makes last inequality into equality
     new_face->representation = dd_Inequality;
 
     poly = dd_DDMatrix2Poly(new_face, &err);

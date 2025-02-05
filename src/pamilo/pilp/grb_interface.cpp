@@ -102,7 +102,7 @@ GRBInterface::GRBInterface(PilpBensonArgs &args)
         m_sense_multi = Point(-1.0, m_d);
         m_lp.set(GRB_IntAttr_ModelSense, GRB_MINIMIZE);
         m_lex_lp.set(GRB_IntAttr_ModelSense, GRB_MINIMIZE);
-        for (int i = 0; i <= m_d; i++)
+        for (int i = 0; i < m_d; i++)
         {
             m_scaled_objectives_lp[i] = -1.0 * m_og_objectives_lp[i];
             m_scaled_objectives_lex_lp[i] = -1.0 * m_og_objectives_lex_lp[i];
